@@ -1,0 +1,29 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "prettier --write \"**/*.{js,mjs,jsx,ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "start": "turbo run start",
+    "start:dev": "turbo run start:dev",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.{js,mjs,jsx,ts,tsx,md}": "prettier --write"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript": "5.9.2"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

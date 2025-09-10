@@ -1,0 +1,29 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development tsx --watch ./src/index.ts",
+    "start:dev": "cross-env NODE_ENV=development node ./dist/index.js",
+    "start": "cross-env NODE_ENV=production node ./dist/index.js",
+    "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:^",
+    "@repo/typescript-config": "workspace:^",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.15.3",
+    "cross-env": "^10.0.0",
+    "tsx": "^4.20.5"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
