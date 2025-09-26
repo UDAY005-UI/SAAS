@@ -16,6 +16,7 @@
         "**/*.{js,mjs,jsx,ts,tsx,md}": "prettier --write"
     },
     "devDependencies": {
+        "eslint": "^9.34.0",
         "husky": "^9.1.7",
         "lint-staged": "^16.1.6",
         "prettier": "^3.6.2",

@@ -4,7 +4,7 @@
   "private": true,
   "exports": {
     "./node-json": "./node.json",
-    "./next-json": "./next.json",
+    "./next-json": "./nextjs.json",
     "./react-library": "./react-library.json"
   }
 }

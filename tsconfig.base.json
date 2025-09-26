@@ -1,0 +1,23 @@
+// tsconfig.base.json (in the MONOREPO ROOT folder, next to package.json)
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // 🚨 CRITICAL MONOREPO ALIASING & RESOLUTION 🚨
+    "baseUrl": ".",
+    "paths": {
+      // Maps configuration package alias to its physical location
+      "@repo/typescript-config/*": ["packages/typescript-config/*"],
+      // Optional: General package alias for importing source code
+      "@repo/*": ["packages/*/src"]
+    },
+
+    // Standard high-quality compiler options
+    "target": "es2020",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
+}
