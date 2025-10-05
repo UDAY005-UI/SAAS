@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx --watch ./src/index.ts",
     "start:dev": "cross-env NODE_ENV=development node ./dist/index.js",
@@ -15,16 +16,21 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:^",
     "@repo/typescript-config": "workspace:^",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^22.15.3",
     "cross-env": "^10.0.0",
+    "prisma": "^6.16.1",
     "tsx": "^4.20.5"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0",
-    "prisma": "^6.16.1"
+    "@clerk/clerk-sdk-node": "^5.1.6",
+    "@clerk/express": "^1.7.36",
+    "@prisma/client": "6.16.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
   }
 }

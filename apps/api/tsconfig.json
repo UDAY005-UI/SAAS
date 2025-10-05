@@ -2,10 +2,14 @@
     "extends": "@repo/typescript-config/node-json",
     "compilerOptions": {
         "outDir": "./dist",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "paths": {
+            "@prisma/client": ["src/generated/prisma"]
+        }
     },
     "include": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "src/types/**/*.d.ts"
     ],
     "exclude": [
         "node_modules", ".turbo", "dist"

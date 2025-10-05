@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -12,14 +11,13 @@ enum Role {
   STUDENT
   INSTRUCTOR
   ADMIN
-  SUPERADMIN
 }
 
 model User {
   id         String    @id @default(uuid())
+  clerkId    String    @unique
   email      String    @unique
-  password   String
-  role       Role
+  role       Role      @default(STUDENT)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -58,7 +56,7 @@ model InstructorProfile {
 
  totalCoursesPublished Int  @default(0)
  totalStudents         Int  @default(0)
- revenueGenerated      Float  @default(0.0)
+ revenueGenerated      Decimal  @default(0.0)
 
  user       User  @relation(fields: [userId], references: [id])   
 }
@@ -68,7 +66,7 @@ model Course {
   instructorId    String  
   title           String
   description     String
-  price           Float
+  price           Decimal
   category        String
   published       Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -120,7 +118,7 @@ model Payment {
   userId          String
   courseId        String
   instructorId    String
-  amount          Float
+  amount          Decimal
   status          String
   transactionId   String  @unique
   createdAt       DateTime  @default(now())
