@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import type { PrismaClient } from "@prisma/client";
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 
 const typedPrisma = prisma as PrismaClient;
 
@@ -30,6 +30,7 @@ export const getAllUserHandler = async (req: Request, res: Response) => {
                 courseProgresses: true,
             },
         });
+        res.status(200).json(users);
     } catch (err) {
         console.log(err);
         return res.status(500).json({ message: "Internal server error" });

@@ -38,6 +38,10 @@ model UserProfile {
   bio        String?
   avatarUrl  String?
   country    String?
+  website   String?
+  github    String?
+  linkedin  String?
+  twitter   String?
 
   totalCoursesEnrolled Int    @default(0)
   totalHoursWatched    Int    @default(0)

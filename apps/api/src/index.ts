@@ -1,7 +1,13 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import { requireAuth } from "@clerk/express";
 import userRoutes from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+
+dotenv.config();
 
 const PORT = 5500;
 const app: Express = express();
@@ -16,6 +22,9 @@ app.use(
 );
 
 app.use("/api/Users", userRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/students", studentRoutes);
 
 app.get("/api/protected", requireAuth(), (req: Request, res: Response) => {
     res.json({ message: "Authenticated route" });
