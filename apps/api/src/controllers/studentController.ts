@@ -101,16 +101,38 @@ export const updateProfile = async (req: Request, res: Response) => {
             },
         });
 
-        return res
-            .status(200)
-            .json({
-                message: "Profile updated successfully",
-                userProfile: updatedProfile,
-            });
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            userProfile: updatedProfile,
+        });
     } catch (err) {
         console.log(err);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
 
-// I need to create a function to show all the available courses in the website
+export const getPurchasedCourses = async (req: Request, res: Response) => {
+    const { userId } = getAuth(req);
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId: userId },
+        });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const courses = await prisma.enrollment.findMany({
+            where: { userId: user.id },
+            include: {
+                course: {
+                    include: { instructor: true, modules: true },
+                },
+            },
+        });
+
+        res.status(200).json({ courses });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

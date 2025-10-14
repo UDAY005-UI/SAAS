@@ -6,6 +6,7 @@ import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use("/api/Users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/courses", courseRoutes);
 
 app.get("/api/protected", requireAuth(), (req: Request, res: Response) => {
     res.json({ message: "Authenticated route" });

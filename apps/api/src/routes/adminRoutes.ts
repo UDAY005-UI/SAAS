@@ -10,19 +10,19 @@ import {
 const router: Router = express.Router();
 
 router.get(
-    "/api/admin/users",
+    "/admin/users",
     requireAuth(),
     requireRole(["ADMIN"]),
     getAllUserHandler
 );
 router.delete(
-    "api/admin/delete-user/:id",
+    "/admin/delete-user/:id",
     requireAuth(),
     requireRole(["ADMIN"]),
     deleteUserHandler
 );
 router.put(
-    "/api/admin/update-user/:id",
+    "/admin/update-user/:id",
     requireAuth(),
     requireRole(["ADMIN"]),
     updateUserHandler
