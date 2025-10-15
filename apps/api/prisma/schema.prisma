@@ -70,7 +70,7 @@ model Course {
   instructorId    String  
   title           String
   description     String
-  price           Decimal
+  price           Decimal @default(0.0)
   category        String
   published       Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -87,7 +87,8 @@ model Module {
   id              String  @id @default(uuid())
   courseId        String
   title           String
-  order           Int
+  description     String?
+  order           Int     @default(0)
 
   course          Course  @relation(fields: [courseId], references: [id])
   lessons         Lesson[]
@@ -99,9 +100,10 @@ model Lesson {
   moduleId        String
   title           String
   contentUrl      String
+  thumbnailUrl    String
   duration        Int
   order           Int
-
+  isPreview       Boolean @default(false)
   module          Module  @relation(fields: [moduleId], references: [id])
 }
 

@@ -18,6 +18,7 @@
     "@repo/typescript-config": "workspace:^",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.15.3",
     "cross-env": "^10.0.0",
     "prisma": "^6.16.1",
@@ -31,8 +32,10 @@
     "@clerk/express": "^1.7.36",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@prisma/client": "6.16.2",
+    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
   }
 }

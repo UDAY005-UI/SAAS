@@ -7,7 +7,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
-
+import instructorRoutes from "./routes/instructorRoutes.js";
 dotenv.config();
 
 const PORT = 5500;
@@ -27,6 +27,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/instructors", instructorRoutes);
 
 app.get("/api/protected", requireAuth(), (req: Request, res: Response) => {
     res.json({ message: "Authenticated route" });
