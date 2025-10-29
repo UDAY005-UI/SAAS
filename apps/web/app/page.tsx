@@ -1,102 +1,273 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+"use client";
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    CSSProperties,
+    JSX,
+} from "react";
+import { ButtonCta } from "@/components/ui/button-shiny";
+import { useClerk, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
-
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
-      </footer>
-    </div>
-  );
+interface MouseGradientStyle extends CSSProperties {
+    left: string;
+    top: string;
+    opacity: number;
 }
+interface Ripple {
+    id: number;
+    x: number;
+    y: number;
+}
+interface VisualState {
+    mouseGradientStyle: MouseGradientStyle;
+    scrolled: boolean;
+}
+interface AnimatedWordProps {
+    word: string;
+    delayMs: number;
+}
+
+const DigitalSerenity = (): JSX.Element => {
+    const [visualState, setVisualState] = useState<VisualState>({
+        mouseGradientStyle: { left: "0px", top: "0px", opacity: 0 },
+        scrolled: false,
+    });
+    const [ripples, setRipples] = useState<Ripple[]>([]);
+    const floatingElementsRef = useRef<HTMLElement[]>([]);
+    const clerk = useClerk();
+    const { isSignedIn } = useUser();
+    const router = useRouter();
+
+    const handleSignUp = () => {
+        if (isSignedIn) {
+            router.push("/Home");
+        } else {
+            clerk.openSignUp();
+        }
+    };
+
+    const handleMouseMove = useCallback((e: MouseEvent) => {
+        setVisualState((prev) => ({
+            ...prev,
+            mouseGradientStyle: {
+                left: `${e.clientX}px`,
+                top: `${e.clientY}px`,
+                opacity: 1,
+            },
+        }));
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        setVisualState((prev) => ({
+            ...prev,
+            mouseGradientStyle: { ...prev.mouseGradientStyle, opacity: 0 },
+        }));
+    }, []);
+
+    const handleClick = useCallback((e: MouseEvent) => {
+        const newRipple: Ripple = {
+            id: Date.now(),
+            x: e.clientX,
+            y: e.clientY,
+        };
+        setRipples((prev) => [...prev, newRipple]);
+        setTimeout(() => {
+            setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+        }, 1000);
+    }, []);
+
+    useEffect(() => {
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseleave", handleMouseLeave);
+        document.addEventListener("click", handleClick);
+        return () => {
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseleave", handleMouseLeave);
+            document.removeEventListener("click", handleClick);
+        };
+    }, [handleMouseMove, handleMouseLeave, handleClick]);
+
+    useEffect(() => {
+        floatingElementsRef.current = Array.from(
+            document.querySelectorAll(
+                ".floating-element-animate"
+            ) as NodeListOf<HTMLElement>
+        );
+    }, []);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const isScrolled = window.scrollY > 10;
+            if (!visualState.scrolled && isScrolled) {
+                setVisualState((prev) => ({ ...prev, scrolled: true }));
+                floatingElementsRef.current.forEach((el, index) => {
+                    const delayInMs =
+                        parseFloat(el.style.animationDelay || "0") * 1000 +
+                        index * 100;
+                    if (el) {
+                        setTimeout(() => {
+                            el.style.animationPlayState = "running";
+                            el.style.opacity = "initial";
+                        }, delayInMs);
+                    }
+                });
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [visualState.scrolled]);
+
+    const pageStyles = `
+    @keyframes word-appear { 0% { opacity: 0; transform: translateY(30px) scale(0.8); filter: blur(10px); } 50% { opacity: 0.8; transform: translateY(10px) scale(0.95); filter: blur(2px); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+    .word-animate { display: inline-block; opacity: 0; margin: 0 0.1em; transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease; animation: word-appear 0.8s ease-out forwards; animation-delay: var(--word-delay); }
+    .word-animate:hover { color: #cbd5e1; transform: translateY(-2px); text-shadow: 0 0 20px rgba(203, 213, 225, 0.5); }
+    #mouse-gradient-react { position: fixed; pointer-events: none; border-radius: 9999px; background-image: radial-gradient(circle, rgba(156, 163, 175, 0.05), rgba(107, 114, 128, 0.05), transparent 70%); transform: translate(-50%, -50%); will-change: left, top, opacity; transition: left 70ms linear, top 70ms linear, opacity 300ms ease-out; }
+    @keyframes grid-draw { 0% { stroke-dashoffset: 1000; opacity: 0; } 50% { opacity: 0.3; } 100% { stroke-dashoffset: 0; opacity: 0.15; } }
+    @keyframes pulse-glow { 0%, 100% { opacity: 0.1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.1); } }
+    .grid-line { stroke: #94a3b8; stroke-width: 0.5; opacity: 0; stroke-dasharray: 5 5; stroke-dashoffset: 1000; animation: grid-draw 2s ease-out forwards; }
+    .detail-dot { fill: #cbd5e1; opacity: 0; animation: pulse-glow 3s ease-in-out infinite; }
+    .corner-element-animate { position: absolute; width: 40px; height: 40px; border: 1px solid rgba(203, 213, 225, 0.2); opacity: 0; animation: word-appear 1s ease-out forwards; }
+    .text-decoration-animate::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: linear-gradient(90deg, transparent, #cbd5e1, transparent); animation: underline-grow 2s ease-out forwards; animation-delay: 2s; }
+    @keyframes underline-grow { to { width: 100%; } }
+    .floating-element-animate { position: absolute; width: 2px; height: 2px; background: #cbd5e1; border-radius: 50%; opacity: 0; animation: float 4s ease-in-out infinite; animation-play-state: paused; }
+    @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; } 25% { transform: translateY(-10px) translateX(5px); opacity: 0.6; } 50% { transform: translateY(-5px) translateX(-3px); opacity: 0.4; } 75% { transform: translateY(-15px) translateX(7px); opacity: 0.8; } }
+    .ripple-effect { position: fixed; width: 4px; height: 4px; background: rgba(203, 213, 225, 0.6); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; animation: pulse-glow 1s ease-out forwards; z-index: 9999; }
+  `;
+
+    const renderWord = ({ word, delayMs }: AnimatedWordProps): JSX.Element => (
+        <span
+            key={word}
+            className="word-animate"
+            style={{ "--word-delay": `${delayMs / 1000}s` } as CSSProperties}
+        >
+            {word}
+        </span>
+    );
+
+    return (
+        <>
+            <style>{pageStyles}</style>
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-slate-100 font-primary overflow-hidden relative">
+                {/* SVG background grid */}
+                <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                >
+                    <defs>
+                        <pattern
+                            id="gridReactDarkResponsive"
+                            width="60"
+                            height="60"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <path
+                                d="M 60 0 L 0 0 0 60"
+                                fill="none"
+                                stroke="rgba(100, 116, 139, 0.1)"
+                                strokeWidth="0.5"
+                            />
+                        </pattern>
+                    </defs>
+                    <rect
+                        width="100%"
+                        height="100%"
+                        fill="url(#gridReactDarkResponsive)"
+                    />
+                </svg>
+
+                {/* Main Content */}
+                <div className="relative z-10 min-h-screen flex flex-col justify-between items-center px-6 py-10 sm:px-8 sm:py-12 md:px-16 md:py-20">
+                    <div className="text-center">
+                        <h2 className="text-xs sm:text-sm font-mono font-light text-slate-300 uppercase tracking-[0.2em] opacity-80">
+                            {renderWord({ word: "Empower", delayMs: 0 })}
+                            {renderWord({ word: "Your", delayMs: 200 })}
+                            {renderWord({ word: "Knowledge.", delayMs: 400 })}
+                        </h2>
+                        <div className="mt-4 w-12 sm:w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
+                    </div>
+
+                    <div className="text-center max-w-5xl mx-auto relative">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extralight leading-tight tracking-tight text-slate-50 text-decoration-animate">
+                            <div className="mb-4 md:mb-6">
+                                {renderWord({ word: "Create,", delayMs: 600 })}
+                                {renderWord({ word: "Sell,", delayMs: 800 })}
+                                {renderWord({ word: "and", delayMs: 1000 })}
+                                {renderWord({ word: "Scale", delayMs: 1200 })}
+                                {renderWord({ word: "Courses", delayMs: 1400 })}
+                                {renderWord({
+                                    word: "Effortlessly.",
+                                    delayMs: 1600,
+                                })}
+                            </div>
+                            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-thin text-slate-300 leading-relaxed tracking-wide">
+                                {renderWord({ word: "Manage", delayMs: 2000 })}
+                                {renderWord({ word: "your", delayMs: 2200 })}
+                                {renderWord({
+                                    word: "content,",
+                                    delayMs: 2400,
+                                })}
+                                {renderWord({
+                                    word: "students,",
+                                    delayMs: 2600,
+                                })}
+                                {renderWord({ word: "and", delayMs: 2800 })}
+                                {renderWord({ word: "growth", delayMs: 3000 })}
+                                {renderWord({ word: "in", delayMs: 3200 })}
+                                {renderWord({ word: "one", delayMs: 3400 })}
+                                {renderWord({
+                                    word: "dashboard.",
+                                    delayMs: 3600,
+                                })}
+                            </div>
+                        </h1>
+                    </div>
+
+                    <div
+                        className="flex flex-col items-center gap-6 p-8 opacity-0"
+                        style={{
+                            animation: "word-appear 1s ease-out forwards",
+                            animationDelay: "3.4s",
+                        }}
+                    >
+                        <ButtonCta
+                            onClick={handleSignUp}
+                            className="w-fit text-sm"
+                        />
+                    </div>
+
+                    <div className="text-center">
+                        <div className="mb-4 w-12 sm:w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
+                        <h2 className="text-xs sm:text-sm font-mono font-light text-slate-300 uppercase tracking-[0.2em] opacity-80">
+                            {renderWord({ word: "Built", delayMs: 4000 })}
+                            {renderWord({ word: "for", delayMs: 4200 })}
+                            {renderWord({ word: "Creators.", delayMs: 4400 })}
+                            {renderWord({ word: "Powered", delayMs: 4600 })}
+                            {renderWord({ word: "by", delayMs: 4800 })}
+                            {renderWord({ word: "Developers.", delayMs: 5000 })}
+                        </h2>
+                    </div>
+                </div>
+
+                <div
+                    id="mouse-gradient-react"
+                    className="w-60 h-60 blur-xl sm:w-80 sm:h-80 sm:blur-2xl md:w-96 md:h-96 md:blur-3xl"
+                    style={visualState.mouseGradientStyle}
+                ></div>
+
+                {ripples.map((ripple) => (
+                    <div
+                        key={ripple.id}
+                        className="ripple-effect"
+                        style={{ left: `${ripple.x}px`, top: `${ripple.y}px` }}
+                    ></div>
+                ))}
+            </div>
+        </>
+    );
+};
+
+export default DigitalSerenity;
