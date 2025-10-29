@@ -10,6 +10,6 @@ export const config = [
                 ...globals.node,
             },
         },
-        ignores: ["/dist"],
+        ignores: ["dist/**", "node_modules/**"],
     },
 ];

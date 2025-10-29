@@ -45,6 +45,6 @@ export const nextJsConfig = [
             // React scope no longer necessary with new JSX transform.
             "react/react-in-jsx-scope": "off",
         },
-        ignores: ["./node_modules", "/.next", "/next-env.d.ts"],
+        ignores: ["node_modules/**", ".next/**", "next-env.d.ts"],
     },
 ];

@@ -18,6 +18,7 @@ export const config = [
             turbo: turboPlugin,
         },
         rules: {
+            "@typescript-eslint/no-explicit-any": "off",
             "turbo/no-undeclared-env-vars": "warn",
         },
     },
@@ -27,6 +28,6 @@ export const config = [
         },
     },
     {
-        ignores: ["dist/**", "node_modules/**"],
+        ignores: ["**/dist/**", "**/node_modules/**", "**/generated/**"],
     },
 ];
