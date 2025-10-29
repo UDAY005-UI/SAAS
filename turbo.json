@@ -1,11 +1,20 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "api#build":{
+      "dependsOn": ["^build"],
+      "env": ["DATABASE_URL", "PAYPAL_SECRET_KEY", "PAYPAL_CLIENT_ID", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET", "CLOUDINARY_API_ENVIRONMENTAL_VARIABLE", "NODE_ENV"],
+      "cache": false
+    },
+    "web#build":{
+      "dependsOn": ["^build"],
+      "env": [""],
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"]
