@@ -1,8 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import type { PrismaClient } from "@prisma/client";
-import { Request, response, Response } from "express";
-
-const typedPrisma = prisma as PrismaClient;
+import { Request, Response } from "express";
 
 export const getAllUserHandler = async (req: Request, res: Response) => {
     try {

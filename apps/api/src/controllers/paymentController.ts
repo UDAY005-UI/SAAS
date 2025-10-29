@@ -5,7 +5,7 @@ import { createPayout } from "../services/payoutServices.js";
 import { prisma } from "../lib/prisma.js";
 
 export async function createOrder(req: Request, res: Response) {
-    const { courseId, studentId } = req.body;
+    const { courseId } = req.body;
 
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");

@@ -277,9 +277,6 @@ export const updateLesson = async (req: Request, res: Response) => {
         if (!lesson)
             return res.status(404).json({ message: "Lesson not found" });
 
-        let contentUrl: string | null = null;
-        let thumbnailUrl: string | null = null;
-
         if (lesson.moduleId !== moduleId)
             return res
                 .status(404)
