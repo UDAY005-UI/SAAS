@@ -74,6 +74,7 @@ model Course {
   category        String
   published       Boolean  @default(false)
   createdAt       DateTime @default(now())
+  thumbnailUrl    String?
 
   instructor      User   @relation("InstructorCourses", fields: [instructorId], references: [id])
   modules         Module[]

@@ -17,7 +17,11 @@ import { upload } from "../middlewares/upload.js";
 
 const router: Router = express.Router();
 
-router.post("/create-course", createCourse);
+router.post(
+    "/create-course",
+    upload.fields([{ name: "thumbnail", maxCount: 1 }]),
+    createCourse
+);
 router.post("/add-modules", addModules);
 router.post(
     "/add-lessons",

@@ -2,10 +2,14 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
 import cloudinary from "../services/cloudinaryServices.js";
 import fs from "fs";
-import { title } from "process";
 
 export const createCourse = async (req: Request, res: Response) => {
     const { title, description, price, category } = req.body;
+    const files = req.files as {
+        [fieldname: string]: Express.Multer.File[];
+    };
+    const thumbnailFile = files?.thumbnail?.[0];
+
     const user = await prisma.user.findUnique({
         where: { clerkId: req.auth.userId! },
     });
@@ -15,6 +19,19 @@ export const createCourse = async (req: Request, res: Response) => {
         return res.status(400).json({ message: "Provide all the details" });
 
     try {
+        let thumbnailUrl: string | null = null;
+
+        if (thumbnailFile) {
+            const thumbUpload = await cloudinary.uploader.upload(
+                thumbnailFile.path,
+                {
+                    folder: "course/thumbnails",
+                }
+            );
+            thumbnailUrl = thumbUpload.secure_url;
+            fs.unlinkSync(thumbnailFile.path);
+        }
+
         const newCourse = await prisma.course.create({
             data: {
                 title,
@@ -22,6 +39,7 @@ export const createCourse = async (req: Request, res: Response) => {
                 price,
                 category,
                 instructorId,
+                thumbnailUrl,
             },
         });
         res.status(201).json({
@@ -195,12 +213,10 @@ export const updateCourse = async (req: Request, res: Response) => {
                     category,
                 },
             });
-            return res
-                .status(200)
-                .json({
-                    message: "course updated successfully",
-                    course: updatedCourse,
-                });
+            return res.status(200).json({
+                message: "course updated successfully",
+                course: updatedCourse,
+            });
         } else {
             return res.status(404).json({ message: "Wrong instructor id" });
         }
@@ -229,12 +245,10 @@ export const updateModule = async (req: Request, res: Response) => {
                     description,
                 },
             });
-            return res
-                .status(200)
-                .json({
-                    message: "Module successfully updated",
-                    module: updatedModule,
-                });
+            return res.status(200).json({
+                message: "Module successfully updated",
+                module: updatedModule,
+            });
         } else {
             return res.status(404).json({ message: "Couldn't update module" });
         }
@@ -302,12 +316,10 @@ export const updateLesson = async (req: Request, res: Response) => {
             where: { id: lessonId },
             data,
         });
-        return res
-            .status(200)
-            .json({
-                message: "Lesson updated successfully",
-                lesson: updatedLesson,
-            });
+        return res.status(200).json({
+            message: "Lesson updated successfully",
+            lesson: updatedLesson,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
@@ -342,12 +354,9 @@ export const deleteCourse = async (req: Request, res: Response) => {
 
         await prisma.course.delete({ where: { id: courseId } });
 
-        return res
-            .status(200)
-            .json({
-                message:
-                    "Course and all related modules/lessons have been deleted",
-            });
+        return res.status(200).json({
+            message: "Course and all related modules/lessons have been deleted",
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Internal server error" });
