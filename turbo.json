@@ -8,12 +8,12 @@
     },
     "api#build":{
       "dependsOn": ["^build"],
-      "env": ["DATABASE_URL", "PAYPAL_SECRET_KEY", "PAYPAL_CLIENT_ID", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET", "CLOUDINARY_API_ENVIRONMENTAL_VARIABLE", "NODE_ENV"],
+      "env": ["DATABASE_URL", "PAYPAL_SECRET_KEY", "PAYPAL_CLIENT_ID", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET", "CLOUDINARY_API_ENVIRONMENTAL_VARIABLE", "NODE_ENV", "CLERK_SECRET_KEY", "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"],
       "cache": false
     },
     "web#build":{
       "dependsOn": ["^build"],
-      "env": [""],
+      "env": ["CLERK_SECRET_KEY", "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"],
       "cache": false
     },
     "lint": {
