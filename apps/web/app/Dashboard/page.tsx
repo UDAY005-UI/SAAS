@@ -9,7 +9,7 @@ import axios from "axios";
 export default function Dashboard() {
     const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [profile, setProfile] = useState();
+    const [user, setUser] = useState();
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -17,7 +17,7 @@ export default function Dashboard() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    "http://localhost:5500/api/students/student/profile",
+                    "http://localhost:5500/api/students/profile",
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -25,7 +25,8 @@ export default function Dashboard() {
                         withCredentials: true,
                     }
                 );
-                setProfile(res.data.user || []);
+                setUser(res.data || {});
+                console.log(user);
             } catch (err) {
                 console.error("Failed to fetch student profile:", err);
             } finally {
@@ -51,7 +52,8 @@ export default function Dashboard() {
                 <h1 className="text-2xl font-bold text-white text-center">
                     Your profile
                 </h1>
-                <Profile user={profile} />
+
+                <Profile user={user} />
             </div>
         </AuthGuard>
     );
