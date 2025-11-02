@@ -57,6 +57,10 @@ model InstructorProfile {
   bio        String?
   avatarUrl  String?
   country    String?
+  website   String?
+  github    String?
+  linkedin  String?
+  twitter   String?
 
  totalCoursesPublished Int  @default(0)
  totalStudents         Int  @default(0)
