@@ -52,13 +52,12 @@ export const updateUserHandler = async (req: Request, res: Response) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ message: "User Id is required" });
 
-    const { email, role } = req.body;
+    const { email } = req.body;
 
     try {
         const updatedUser = await prisma.user.update({
             where: { id },
             data: {
-                role,
                 email,
                 updatedAt: new Date(),
             },

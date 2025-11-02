@@ -12,8 +12,11 @@ export const requireRole = (allowedRoles: string[]) => {
             const user = await prisma.user.findUnique({
                 where: { clerkId: userId },
             });
-            if (!user || !allowedRoles.includes(user.role))
-                return res.status(403).json({ message: "forbidden" });
+            if (
+                !user ||
+                !user.roles.some((role) => allowedRoles.includes(role))
+            )
+                return res.status(403).json({ message: "Forbidden" });
 
             req.user = user;
             next();

@@ -10,39 +10,108 @@ export const getProfile = async (req: Request, res: Response) => {
     }
 
     try {
-        const User = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { clerkId: userId },
             include: {
-                userProfile: true,
+                userProfile: {
+                    select: {
+                        name: true,
+                        bio: true,
+                        avatarUrl: true,
+                        country: true,
+                        website: true,
+                        github: true,
+                        linkedin: true,
+                        twitter: true,
+                        totalCoursesEnrolled: true,
+                        totalHoursWatched: true,
+                        certificatesEarned: true,
+                    },
+                },
+                instructorProfile: {
+                    select: {
+                        orgName: true,
+                        bio: true,
+                        avatarUrl: true,
+                        country: true,
+                        website: true,
+                        github: true,
+                        linkedin: true,
+                        twitter: true,
+                        totalCoursesPublished: true,
+                        totalStudents: true,
+                        revenueGenerated: true,
+                    },
+                },
                 enrollments: {
                     include: {
                         course: {
-                            include: {
+                            select: {
+                                id: true,
+                                title: true,
+                                description: true,
+                                thumbnailUrl: true,
+                                price: true,
                                 modules: {
-                                    include: {
-                                        lessons: true,
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        description: true,
+                                        order: true,
+                                        lessons: {
+                                            select: {
+                                                id: true,
+                                                title: true,
+                                                duration: true,
+                                            },
+                                        },
                                     },
                                 },
-                                reviews: true,
                             },
                         },
                     },
                 },
-                paymentsAsStudent: true,
+                paymentsAsStudent: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                        createdAt: true,
+                        courseId: true,
+                    },
+                },
                 reviews: {
                     include: {
-                        course: true,
+                        course: {
+                            select: {
+                                id: true,
+                                title: true,
+                                thumbnailUrl: true,
+                            },
+                        },
                     },
                 },
                 courseProgresses: {
                     include: {
-                        course: true,
-                        modules: true,
+                        course: {
+                            select: {
+                                id: true,
+                                title: true,
+                            },
+                        },
+                        modules: {
+                            select: {
+                                id: true,
+                                progress: true,
+                                completed: true,
+                            },
+                        },
                     },
                 },
             },
         });
-        res.status(200).json(User);
+
+        res.status(200).json(user);
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "Internal server error" });
@@ -130,7 +199,7 @@ export const getPurchasedCourses = async (req: Request, res: Response) => {
             },
         });
 
-        res.status(200).json({ courses });
+        res.status(200).json({ courses: courses || [] });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
