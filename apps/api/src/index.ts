@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { requireAuth } from "@clerk/express";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
@@ -14,15 +14,18 @@ const PORT = 5500;
 const app: Express = express();
 
 app.use(express.json());
+app.use(clerkMiddleware());
 
 app.use(
     cors({
         origin: "http://localhost:3000",
+        methods: "GET,POST,PUT,DELETE",
         credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
-app.use("/api/Users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/students", studentRoutes);

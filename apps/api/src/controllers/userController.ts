@@ -1,4 +1,4 @@
-import { clerkClient } from "@clerk/express";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 import { prisma } from "../lib/prisma.js";
 import { Request, Response } from "express";
 
@@ -34,9 +34,13 @@ export const createUser = async (req: Request, res: Response) => {
 export const setRole = async (req: Request, res: Response) => {
     const { role } = req.body;
     const { userId } = req.auth;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (role !== "STUDENT" && role !== "INSTRUCTOR")
+        return res.status(400).json({ message: "Invalid role" });
+
     try {
         const existingUser = await prisma.user.findUnique({
-            where: { clerkId: userId ?? undefined },
+            where: { clerkId: userId },
         });
         if (!existingUser) {
             return res.status(404).json({ message: "User doesn't exist" });
@@ -46,7 +50,7 @@ export const setRole = async (req: Request, res: Response) => {
         }
 
         const updated = await prisma.user.update({
-            where: { clerkId: userId ?? undefined },
+            where: { clerkId: userId },
             data: { role },
         });
 
@@ -69,10 +73,11 @@ export const createProfile = async (req: Request, res: Response) => {
         orgName,
     } = req.body;
     const { userId } = req.auth;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     try {
         const user = await prisma.user.findUnique({
-            where: { clerkId: userId ?? undefined },
+            where: { clerkId: userId },
         });
         if (!user) return res.status(404).json({ message: "User not found" });
 

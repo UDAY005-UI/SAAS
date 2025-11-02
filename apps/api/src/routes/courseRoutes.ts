@@ -3,6 +3,6 @@ import { getAvailableCourses } from "../controllers/courseController.js";
 
 const router: Router = express.Router();
 
-router.get("/courses", getAvailableCourses);
+router.get("/getCourses", getAvailableCourses);
 
 export default router;
