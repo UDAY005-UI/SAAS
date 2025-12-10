@@ -48,12 +48,14 @@ export default function Dashboard() {
 
     return (
         <AuthGuard>
-            <div className="px-6 py-8">
+            <div className="px-6 py-8 ">
                 <h1 className="text-2xl font-bold text-white text-center">
                     Your profile
                 </h1>
 
-                <Profile user={user} />
+                <div className="flex justify-center">
+                    <Profile user={user} />
+                </div>
             </div>
         </AuthGuard>
     );
