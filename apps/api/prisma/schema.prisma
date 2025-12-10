@@ -1,10 +1,12 @@
+
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("psql")
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -14,164 +16,164 @@ enum Role {
 }
 
 model User {
-  id         String    @id @default(uuid())
-  clerkId    String    @unique
-  email      String    @unique
-  roles       Role[]      @default([STUDENT])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id                  String               @id @default(uuid())
+  clerkId             String               @unique
+  email               String               @unique
+  roles               Role[]               @default([STUDENT])
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
-  userProfile          UserProfile?
-  instructorProfile    InstructorProfile?
-  courses             Course[] @relation("InstructorCourses")  
-  enrollments          Enrollment[]
-  paymentsAsStudent   Payment[] @relation("UserPayments")
-  paymentsAsInstructor Payment[] @relation("InstructorPayments")
-  reviews              Review[]
-  courseProgresses     CourseProgress[] 
+  userProfile         UserProfile?
+  instructorProfile   InstructorProfile?
+  courses             Course[]             @relation("InstructorCourses")
+  enrollments         Enrollment[]
+  paymentsAsStudent   Payment[]            @relation("UserPayments")
+  paymentsAsInstructor Payment[]           @relation("InstructorPayments")
+  reviews             Review[]
+  courseProgresses    CourseProgress[]
 }
 
 model UserProfile {
-  id         String   @id @default(uuid())
-  userId     String   @unique
-  name       String
-  bio        String?
-  avatarUrl  String?
-  country    String?
-  website   String?
-  github    String?
-  linkedin  String?
-  twitter   String?
+  id                       String   @id @default(uuid())
+  userId                   String   @unique
+  name                     String
+  bio                      String?
+  avatarUrl                String?
+  country                  String?
+  website                  String?
+  github                   String?
+  linkedin                 String?
+  twitter                  String?
 
-  totalCoursesEnrolled Int    @default(0)
-  totalHoursWatched    Int    @default(0)
-  certificatesEarned   Int    @default(0)
+  totalCoursesEnrolled     Int      @default(0)
+  totalHoursWatched        Int      @default(0)
+  certificatesEarned       Int      @default(0)
 
-  user       User   @relation(fields: [userId], references: [id])
+  user                     User     @relation(fields: [userId], references: [id])
 }
 
 model InstructorProfile {
-  id         String    @id @default(uuid())
-  userId     String    @unique
-  orgName    String?
-  bio        String?
-  avatarUrl  String?
-  country    String?
-  website   String?
-  github    String?
-  linkedin  String?
-  twitter   String?
+  id                       String   @id @default(uuid())
+  userId                   String   @unique
+  orgName                  String?
+  bio                      String?
+  avatarUrl                String?
+  country                  String?
+  website                  String?
+  github                   String?
+  linkedin                 String?
+  twitter                  String?
 
- totalCoursesPublished Int  @default(0)
- totalStudents         Int  @default(0)
- revenueGenerated      Decimal  @default(0.0)
+  totalCoursesPublished    Int      @default(0)
+  totalStudents            Int      @default(0)
+  revenueGenerated         Decimal  @default(0.0)
 
- user       User  @relation(fields: [userId], references: [id])   
+  user                     User     @relation(fields: [userId], references: [id])
 }
 
 model Course {
-  id              String  @id @default(uuid())
-  instructorId    String  
-  title           String
-  description     String
-  price           Decimal @default(0.0)
-  category        String
-  published       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  thumbnailUrl    String?
+  id                String             @id @default(uuid())
+  instructorId      String
+  title             String
+  description       String
+  price             Decimal            @default(0.0)
+  category          String
+  published         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  thumbnailUrl      String?
 
-  instructor      User   @relation("InstructorCourses", fields: [instructorId], references: [id])
-  modules         Module[]
-  enrollments     Enrollment[]
-  payments        Payment[]
-  reviews         Review[]
-  courseProgresses      CourseProgress[]
+  instructor        User               @relation("InstructorCourses", fields: [instructorId], references: [id])
+  modules           Module[]
+  enrollments       Enrollment[]
+  payments          Payment[]
+  reviews           Review[]
+  courseProgresses  CourseProgress[]
 }
 
 model Module {
-  id              String  @id @default(uuid())
-  courseId        String
-  title           String
-  description     String?
-  order           Int     @default(0)
+  id                 String             @id @default(uuid())
+  courseId           String
+  title              String
+  description        String?
+  order              Int                @default(0)
 
-  course          Course  @relation(fields: [courseId], references: [id])
-  lessons         Lesson[]
-  moduleProgresses        ModuleProgress[]
+  course             Course             @relation(fields: [courseId], references: [id])
+  lessons            Lesson[]
+  moduleProgresses   ModuleProgress[]
 }
 
 model Lesson {
-  id              String  @id @default(uuid())
-  moduleId        String
-  title           String
-  contentUrl      String
-  thumbnailUrl    String
-  duration        Int
-  order           Int
-  isPreview       Boolean @default(false)
-  module          Module  @relation(fields: [moduleId], references: [id])
+  id                 String             @id @default(uuid())
+  moduleId           String
+  title              String
+  contentUrl         String
+  thumbnailUrl       String
+  duration           Int
+  order              Int
+  isPreview          Boolean            @default(false)
+  module             Module             @relation(fields: [moduleId], references: [id])
 }
 
 model Enrollment {
-  id              String  @id @default(uuid())
-  userId          String
-  courseId        String
-  progress        Float   @default(0.0)
-  completed       Boolean @default(false)
-  createdAt       DateTime  @default(now())
+  id                 String             @id @default(uuid())
+  userId             String
+  courseId           String
+  progress           Float              @default(0.0)
+  completed          Boolean            @default(false)
+  createdAt          DateTime           @default(now())
 
-  user            User  @relation(fields: [userId], references: [id])
-  course          Course    @relation(fields: [courseId], references: [id])
+  user               User               @relation(fields: [userId], references: [id])
+  course             Course             @relation(fields: [courseId], references: [id])
 }
 
 model Payment {
-  id              String  @id @default(uuid())
-  userId          String
-  courseId        String
-  instructorId    String
-  amount          Decimal
-  status          String
-  transactionId   String  @unique
-  createdAt       DateTime  @default(now())
+  id                 String             @id @default(uuid())
+  userId             String
+  courseId           String
+  instructorId       String
+  amount             Decimal
+  status             String
+  transactionId      String             @unique
+  createdAt          DateTime           @default(now())
 
-  user            User  @relation("UserPayments", fields: [userId], references: [id])
-  course          Course  @relation(fields: [courseId], references: [id])
-  instructor      User  @relation("InstructorPayments", fields: [instructorId], references: [id]) 
+  user               User               @relation("UserPayments", fields: [userId], references: [id])
+  course             Course             @relation(fields: [courseId], references: [id])
+  instructor         User               @relation("InstructorPayments", fields: [instructorId], references: [id])
 
   @@index([userId, courseId, instructorId])
 }
 
 model Review {
-  id              String  @id @default(uuid())
-  userId          String
-  courseId        String
-  rating          Int
-  comment         String?
-  createdAt       DateTime  @default(now())
+  id                 String             @id @default(uuid())
+  userId             String
+  courseId           String
+  rating             Int
+  comment            String?
+  createdAt          DateTime           @default(now())
 
-  user            User  @relation(fields: [userId], references: [id])
-  course          Course  @relation(fields: [courseId], references: [id])
+  user               User               @relation(fields: [userId], references: [id])
+  course             Course             @relation(fields: [courseId], references: [id])
 }
 
 model CourseProgress {
-  id              String  @id @default(uuid())
-  userId          String
-  courseId        String
-  progress        Float  @default(0.0)
-  completed       Boolean  @default(false)
+  id                 String             @id @default(uuid())
+  userId             String
+  courseId           String
+  progress           Float              @default(0.0)
+  completed          Boolean            @default(false)
 
-  user            User  @relation(fields: [userId], references: [id])
-  course          Course  @relation(fields: [courseId], references: [id])
-  modules         ModuleProgress[]
+  user               User               @relation(fields: [userId], references: [id])
+  course             Course             @relation(fields: [courseId], references: [id])
+  modules            ModuleProgress[]
 }
 
 model ModuleProgress {
-  id              String  @id @default(uuid())
-  courseProgressId      String  
-  moduleId        String
-  progress        Float  @default(0.0)
-  completed      Boolean  @default(false)
+  id                 String             @id @default(uuid())
+  courseProgressId   String
+  moduleId           String
+  progress           Float              @default(0.0)
+  completed          Boolean            @default(false)
 
-  courseProgress  CourseProgress  @relation(fields: [courseProgressId], references: [id])
-  module          Module  @relation(fields: [moduleId], references: [id])
+  courseProgress     CourseProgress     @relation(fields: [courseProgressId], references: [id])
+  module             Module             @relation(fields: [moduleId], references: [id])
 }
