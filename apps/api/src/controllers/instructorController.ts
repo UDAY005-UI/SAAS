@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
+import { getAuth } from "@clerk/express";
 import cloudinary from "../services/cloudinaryServices.js";
 import fs from "fs";
+import { updateProfile } from "./studentController.js";
+import { Role } from "@prisma/client";
 
 export const createCourse = async (req: Request, res: Response) => {
     const { title, description, price, category } = req.body;
@@ -494,5 +497,249 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const becomeInstructor = async (req: Request, res: Response) => {
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+        return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const {
+        orgName,
+        bio,
+        avatarUrl,
+        country,
+        website,
+        github,
+        linkedin,
+        twitter,
+    } = req.body ?? {};
+
+    const errors: string[] = [];
+    const maxLen = (v?: string, n = 200) => (v && v.length > n ? true : false);
+    const isValidUrl = (value?: string) => {
+        if (!value) return true;
+        try {
+            const url = new URL(value);
+            return url.protocol === "http:" || url.protocol === "https:";
+        } catch {
+            return false;
+        }
+    };
+
+    if (orgName && maxLen(orgName, 200))
+        errors.push("orgName too long (max 200 chars)");
+    if (bio && maxLen(bio, 2000)) errors.push("bio too long (max 2000 chars)");
+    if (avatarUrl && !isValidUrl(avatarUrl))
+        errors.push("avatarUrl must be a valid absolute URL (http/https)");
+    if (website && !isValidUrl(website))
+        errors.push("website must be a valid absolute URL (http/https)");
+    if (github && !isValidUrl(github))
+        errors.push("github must be a valid absolute URL (http/https)");
+    if (linkedin && !isValidUrl(linkedin))
+        errors.push("linkedin must be a valid absolute URL (http/https)");
+    if (twitter && !isValidUrl(twitter))
+        errors.push("twitter must be a valid absolute URL (http/https)");
+    if (country && maxLen(country, 100))
+        errors.push("country too long (max 100 chars)");
+
+    if (errors.length > 0) {
+        return res
+            .status(400)
+            .json({ message: "Validation failed", details: errors });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId },
+            select: { id: true, roles: true },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const result = await prisma.$transaction(async (tx) => {
+            const currentRoles = (user.roles ?? []) as Role[];
+            const newRoles: Role[] = Array.from(
+                new Set([...currentRoles, Role.INSTRUCTOR])
+            );
+
+            await tx.user.update({
+                where: { id: user.id },
+                data: { roles: { set: newRoles } },
+            });
+
+            const profile = await tx.instructorProfile.upsert({
+                where: { userId: user.id },
+                create: {
+                    userId: user.id,
+                    orgName: orgName ?? null,
+                    bio: bio ?? null,
+                    avatarUrl: avatarUrl ?? null,
+                    country: country ?? null,
+                    website: website ?? null,
+                    github: github ?? null,
+                    linkedin: linkedin ?? null,
+                    twitter: twitter ?? null,
+                },
+                update: {
+                    orgName: orgName ?? undefined,
+                    bio: bio ?? undefined,
+                    avatarUrl: avatarUrl ?? undefined,
+                    country: country ?? undefined,
+                    website: website ?? undefined,
+                    github: github ?? undefined,
+                    linkedin: linkedin ?? undefined,
+                    twitter: twitter ?? undefined,
+                },
+            });
+
+            const updatedUser = await tx.user.findUnique({
+                where: { id: user.id },
+                include: { instructorProfile: true, userProfile: true },
+            });
+            return { profile, user: updateProfile };
+        });
+        return res.status(200).json({
+            message: "Instructor profile created/updated and role granted",
+            user: result.user,
+            instructorProfile: result.profile,
+        });
+    } catch (err) {
+        console.error("becomeInstructor error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getInstructorProfile = async (req: Request, res: Response) => {
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+        return res.status(401).json({ message: "Not Authenticated" });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId },
+            select: {
+                id: true,
+                roles: true,
+                instructorProfile: {
+                    select: {
+                        orgName: true,
+                        bio: true,
+                        avatarUrl: true,
+                        country: true,
+                        website: true,
+                        github: true,
+                        linkedin: true,
+                        twitter: true,
+                        totalCoursesPublished: true,
+                        totalStudents: true,
+                        revenueGenerated: true,
+                    },
+                },
+            },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (!user.instructorProfile) {
+            return res
+                .status(404)
+                .json({
+                    message:
+                        "Instructor profile doesn't exist. Become an Instructor first.",
+                });
+        }
+
+        return res.status(200).json({
+            id: user.id,
+            role: user.roles,
+            instructorProfile: user.instructorProfile,
+        });
+    } catch (err) {
+        console.error("getInstructorProfile error:", err);
+        return res.status(500).json({ message: "internal server error" });
+    }
+};
+
+export const updateInstructorProfile = async (req: Request, res: Response) => {
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+        return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const {
+        orgName,
+        bio,
+        avatarUrl,
+        country,
+        website,
+        github,
+        linkedin,
+        twitter,
+    } = req.body ?? {};
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId },
+            include: { instructorProfile: true },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (!user.instructorProfile) {
+            return res
+                .status(404)
+                .json({
+                    message:
+                        "Instructor profile not found. Become an instructor first.",
+                });
+        }
+
+        const updatedProfile = await prisma.instructorProfile.update({
+            where: { userId: user.id },
+            data: {
+                orgName: orgName ?? undefined,
+                bio: bio ?? undefined,
+                avatarUrl: avatarUrl ?? undefined,
+                country: country ?? undefined,
+                website: website ?? undefined,
+                github: github ?? undefined,
+                linkedin: linkedin ?? undefined,
+                twitter: twitter ?? undefined,
+            },
+            select: {
+                orgName: true,
+                bio: true,
+                avatarUrl: true,
+                country: true,
+                website: true,
+                github: true,
+                linkedin: true,
+                twitter: true,
+                totalCoursesPublished: true,
+                totalStudents: true,
+                revenueGenerated: true,
+            },
+        });
+
+        return res.status(200).json({
+            message: "Instructor profile updated successfully",
+            instructorProfile: updatedProfile,
+        });
+    } catch (err) {
+        console.error("updateInstructorProfile error:", err);
+        return res.status(500).json({ message: "Internal server error" });
     }
 };

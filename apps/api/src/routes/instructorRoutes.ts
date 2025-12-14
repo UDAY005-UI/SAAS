@@ -12,6 +12,9 @@ import {
     deleteModule,
     getInstructorCourses,
     getInstructorEarnings,
+    becomeInstructor,
+    getInstructorProfile,
+    updateInstructorProfile,
 } from "../controllers/instructorController.js";
 import { upload } from "../middlewares/upload.js";
 
@@ -31,7 +34,9 @@ router.post(
     ]),
     addLessons
 );
+router.post("/becomeInstructor", becomeInstructor);
 router.post("/publish-course", publishCourse);
+router.put("updateProfile", updateInstructorProfile);
 router.put("/update-course", updateCourse);
 router.put("/update-module", updateModule);
 router.put("/update-lesson", updateLesson);
@@ -40,5 +45,6 @@ router.delete("/delete-module", deleteModule);
 router.delete("/delete-lesson", deleteLesson);
 router.get("/instructor-courses", getInstructorCourses);
 router.get("/instructor-earnings", getInstructorEarnings);
+router.get("/getProfile", getInstructorProfile);
 
 export default router;
