@@ -11,17 +11,17 @@ export default function Home() {
 
     const handleGetStarted = () => {
         if (isSignedIn) {
-            router.push("/Home");
+            router.push("/student/Home");
         } else {
             openSignUp({
-                afterSignInUrl: "/Home",
+                afterSignInUrl: "/student/Home",
                 afterSignUpUrl: "/Onboarding",
             });
         }
     };
 
     const handleBrowseComponents = () => {
-        router.push("/Discover");
+        router.push("/student/Discover");
     };
     return (
         <div className="w-full h-screen flex flex-col items-center justify-center px-4 -mt-15">

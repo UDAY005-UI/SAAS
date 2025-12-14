@@ -17,6 +17,7 @@ type ProfileProps = {
             website?: string | null;
             github?: string | null;
             linkedin?: string | null;
+            twitter?: string | null;
         } | null;
     };
 };
@@ -36,6 +37,7 @@ export function Profile({ user }: ProfileProps) {
         website: profile?.website || "",
         github: profile?.github || "",
         linkedin: profile?.linkedin || "",
+        twitter: profile?.twitter || "",
     });
 
     const handleChange = (key: string, value: string) => {
@@ -191,6 +193,24 @@ export function Profile({ user }: ProfileProps) {
                         }
                         className="bg-black border border-gray-600 rounded-md p-2 text-sm w-full"
                         placeholder="LinkedIn link"
+                    />
+                )}
+            </div>
+
+            <div className="space-y-1">
+                <label className="text-sm font-semibold">Twitter</label>
+                {!isEditing ? (
+                    <p className="text-gray-400 text-sm">
+                        {form.twitter || "--"}
+                    </p>
+                ) : (
+                    <input
+                        value={form.twitter}
+                        onChange={(e) =>
+                            handleChange("twitter", e.target.value)
+                        }
+                        className="bg-black border border-gray-600 rounded-md p-2 text-sm w-full"
+                        placeholder="Twitter link"
                     />
                 )}
             </div>

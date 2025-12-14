@@ -11,7 +11,7 @@ export default function InstructorNavbar() {
 
     const links = [
         { name: "Home", path: "/instructor/Home" },
-        { name: "Discover", path: "/instructor/Courses" },
+        { name: "Courses", path: "/instructor/Courses" },
         { name: "Dashboard", path: "/instructor/Dashboard" },
     ];
 
