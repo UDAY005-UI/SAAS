@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Navbar from "./Navbar";
+import InstructorNavbar from "./InstructorNavbar";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -14,7 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="min-h-screen">
-            {showNavbar && <Navbar />}
+            {showNavbar && <Navbar /> && <InstructorNavbar />}
             {children}
         </div>
     );

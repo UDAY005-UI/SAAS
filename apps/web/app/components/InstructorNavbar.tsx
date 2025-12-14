@@ -5,14 +5,14 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function Navbar() {
+export default function InstructorNavbar() {
     const pathname = usePathname();
     const { isSignedIn } = useUser();
 
     const links = [
-        { name: "Home", path: "/student/Home" },
-        { name: "Discover", path: "/student/Discover" },
-        { name: "Dashboard", path: "/student/Dashboard" },
+        { name: "Home", path: "/instructor/Home" },
+        { name: "Discover", path: "/instructor/Courses" },
+        { name: "Dashboard", path: "/instructor/Dashboard" },
     ];
 
     return (
