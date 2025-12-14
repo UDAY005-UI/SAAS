@@ -1,23 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AuthGuard } from "../components/AuthWrapper";
+import { AuthGuard } from "../../components/AuthWrapper";
+import AvailableCourses from "../../components/AvailableCourses";
 import { useAuth } from "@clerk/nextjs";
-import { Profile } from "../components/Profile";
 import axios from "axios";
 
-export default function Dashboard() {
+export default function Discover() {
     const { getToken } = useAuth();
+    const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState();
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchCourses = async () => {
             try {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    "http://localhost:5500/api/students/profile",
+                    "http://localhost:5500/api/courses/getCourses",
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -25,22 +25,21 @@ export default function Dashboard() {
                         withCredentials: true,
                     }
                 );
-                setUser(res.data || {});
-                console.log(user);
+                setCourses(res.data.courses || []);
             } catch (err) {
-                console.error("Failed to fetch student profile:", err);
+                console.error("Failed to fetch available courses:", err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchProfile();
+        fetchCourses();
     }, [getToken]);
 
     if (loading) {
         return (
             <AuthGuard>
                 <div className="w-full text-center mt-30 text-gray-400">
-                    Loading your profile
+                    Loading courses
                 </div>
             </AuthGuard>
         );
@@ -48,14 +47,11 @@ export default function Dashboard() {
 
     return (
         <AuthGuard>
-            <div className="px-6 py-8 ">
+            <div className="px-6 py-8">
                 <h1 className="text-2xl font-bold text-white text-center">
-                    Your profile
+                    Available courses
                 </h1>
-
-                <div className="flex justify-center">
-                    <Profile user={user} />
-                </div>
+                <AvailableCourses courses={courses} />
             </div>
         </AuthGuard>
     );

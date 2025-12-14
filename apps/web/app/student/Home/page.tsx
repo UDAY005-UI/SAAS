@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AuthGuard } from "../components/AuthWrapper";
-import PurchasedCourses from "../components/PurchasedCourses";
+import { AuthGuard } from "../../components/AuthWrapper";
+import PurchasedCourses from "../../components/PurchasedCourses";
 import { useAuth, useUser } from "@clerk/nextjs";
 import axios from "axios";
 
