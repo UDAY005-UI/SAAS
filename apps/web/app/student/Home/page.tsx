@@ -46,9 +46,7 @@ export default function Home() {
                         withCredentials: true,
                     }
                 );
-                setCourses(
-                    Array.isArray(res.data.courses) ? res.data.courses : []
-                );
+                setCourses(Array.isArray(res.data.data) ? res.data.data : []);
             } catch (err) {
                 console.error("Failed to fetch purchased courses:", err);
             } finally {

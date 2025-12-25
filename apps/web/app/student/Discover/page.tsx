@@ -25,7 +25,7 @@ export default function Discover() {
                         withCredentials: true,
                     }
                 );
-                setCourses(res.data.courses || []);
+                setCourses(res.data.data || []);
             } catch (err) {
                 console.error("Failed to fetch available courses:", err);
             } finally {
