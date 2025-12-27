@@ -1,85 +1,53 @@
 "use client";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
-type AvailableCourse = {
+type AvailableModule = {
     id: string;
     title: string;
     description: string;
-    category: string;
-    thumbnailUrl: string;
-    price: string;
-    published: string;
-    createdAt: string;
-    instructor: {
-        userProfile?: {
-            name?: string | null;
-            avatarUrl?: string | null;
-            country?: string | null;
-        } | null;
-    };
-    modules: {
-        id: string;
-        title: string;
-        order: number;
-    }[];
+    order: string;
+}[];
+
+type AvailableModulesProps = {
+    modules: AvailableModule[];
 };
 
-type AvailableCoursesProps = {
-    courses: AvailableCourse[];
-};
-
-export default function AvailableCourses({ courses }: AvailableCoursesProps) {
+export default function AvailableCourses({ modules }: AvailableModulesProps) {
+    const { courseId } = useParams<{ courseId: string }>();
     const router = useRouter();
 
-    if (!courses || courses.length === 0) {
+    if (!modules || modules.length === 0) {
         return (
             <div className="w-full text-center mt-10 text-gray-300">
-                No courses available.
+                No modules available.
             </div>
         );
     }
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-            {courses.map((course) => (
+            {modules.map((module: any) => (
                 <div
-                    key={course.id}
+                    key={module.id}
                     className="bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl p-5 hover:scale-[1.02] transition cursor-pointer"
                 >
-                    <div className="relative w-full h-40 rounded-xl overflow-hidden">
-                        <Image
-                            src={course.thumbnailUrl || "/placeholder.jpg"}
-                            alt={course.title}
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-
                     <h2 className="text-white text-lg font-bold mt-4">
-                        {course.title}
+                        {module.title}
                     </h2>
 
-                    <p className="text-[#47d4de] text-sm">
-                        {course.instructor?.userProfile?.name ||
-                            "Unknown Instructor"}
-                    </p>
-
                     <p className="text-gray-400 text-xs mt-1">
-                        {course.category}
-                    </p>
-
-                    <p className="text-white font-semibold mt-2">
-                        ₹{course.price}
+                        {module.description}
                     </p>
 
                     <button
                         onClick={() =>
-                            router.push(`/instructor/Courses/${course.id}`)
+                            router.push(
+                                `/instructor/Courses/${courseId}/Modules/${module.id}`
+                            )
                         }
                         className="mt-4 bg-[#47d4de] w-full py-2 rounded-xl font-semibold hover:bg-[#3ac0ca]"
                     >
-                        View Course
+                        View Module
                     </button>
                 </div>
             ))}

@@ -60,6 +60,10 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                         {course.title}
                     </h2>
 
+                    <p className="text-gray-400 text-xs mt-1">
+                        {course.description}
+                    </p>
+
                     <p className="text-[#47d4de] text-sm">
                         {course.instructor?.userProfile?.name ||
                             "Unknown Instructor"}
