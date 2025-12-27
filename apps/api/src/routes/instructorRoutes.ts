@@ -25,9 +25,9 @@ router.post(
     upload.fields([{ name: "thumbnail", maxCount: 1 }]),
     createCourse
 );
-router.post("/add-modules", addModules);
+router.post("/:courseId/add-modules", addModules);
 router.post(
-    "/add-lessons",
+    "/:moduleId/add-lessons",
     upload.fields([
         { name: "video", maxCount: 1 },
         { name: "thumbnail", maxCount: 1 },

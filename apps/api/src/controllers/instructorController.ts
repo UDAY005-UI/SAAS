@@ -56,9 +56,11 @@ export const createCourse = async (req: Request, res: Response) => {
 };
 
 export const addModules = async (req: Request, res: Response) => {
-    const { courseId, title, description } = req.body;
+    const { courseId } = req.params;
+    const { title, description } = req.body;
+
     if (!courseId || !title)
-        return res.status(401).json({ message: "Provide all the details" });
+        return res.status(400).json({ message: "Provide all the details" });
 
     const maxOrder = await prisma.module.aggregate({
         where: { courseId },
@@ -81,7 +83,8 @@ export const addModules = async (req: Request, res: Response) => {
 };
 
 export const addLessons = async (req: Request, res: Response) => {
-    const { moduleId, title, duration } = req.body;
+    const { moduleId } = req.params;
+    const { title, duration } = req.body;
     const files = req.files as {
         [fieldname: string]: Express.Multer.File[];
     };
@@ -651,12 +654,10 @@ export const getInstructorProfile = async (req: Request, res: Response) => {
         }
 
         if (!user.instructorProfile) {
-            return res
-                .status(404)
-                .json({
-                    message:
-                        "Instructor profile doesn't exist. Become an Instructor first.",
-                });
+            return res.status(404).json({
+                message:
+                    "Instructor profile doesn't exist. Become an Instructor first.",
+            });
         }
 
         return res.status(200).json({
@@ -699,12 +700,10 @@ export const updateInstructorProfile = async (req: Request, res: Response) => {
         }
 
         if (!user.instructorProfile) {
-            return res
-                .status(404)
-                .json({
-                    message:
-                        "Instructor profile not found. Become an instructor first.",
-                });
+            return res.status(404).json({
+                message:
+                    "Instructor profile not found. Become an instructor first.",
+            });
         }
 
         const updatedProfile = await prisma.instructorProfile.update({
