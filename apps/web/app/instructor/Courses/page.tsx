@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AuthGuard } from "@/app/components/AuthWrapper";
-import UnpublishedCourses from "@/app/components/AvailableCourses";
+import UnpublishedCourses from "@/app/components/UnpublishedCourses";
 import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";

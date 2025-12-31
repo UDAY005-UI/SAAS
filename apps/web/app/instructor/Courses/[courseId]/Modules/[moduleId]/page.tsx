@@ -23,7 +23,7 @@ export default function Modules() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    `http://localhost:5500/api/courses/${moduleId}/lessons`,
+                    `http://localhost:5500/api/courses/${moduleId}/lessons-list`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -40,7 +40,6 @@ export default function Modules() {
         };
         fetchLessons();
     }, [getToken]);
-    console.log(lessons);
 
     if (loading) {
         return (

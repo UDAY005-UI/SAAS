@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 type AvailableLesson = {
     id: string;
@@ -15,6 +15,8 @@ type AvailableLessonsProps = {
 };
 
 export default function AvailableCourses({ lessons }: AvailableLessonsProps) {
+    const { courseId } = useParams<{ courseId: string }>();
+    const { moduleId } = useParams<{ moduleId: string }>();
     const router = useRouter();
 
     if (!lessons || lessons.length === 0) {
@@ -51,7 +53,9 @@ export default function AvailableCourses({ lessons }: AvailableLessonsProps) {
 
                     <button
                         onClick={() =>
-                            router.push(`/instructor/Courses/${lesson.id}`)
+                            router.push(
+                                `/instructor/Courses/${courseId}/Modules/${moduleId}/Lessons/${lesson.id}`
+                            )
                         }
                         className="mt-4 bg-[#47d4de] w-full py-2 rounded-xl font-semibold hover:bg-[#3ac0ca]"
                     >

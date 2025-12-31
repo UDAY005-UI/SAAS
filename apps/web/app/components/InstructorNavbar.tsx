@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 
 export default function InstructorNavbar() {
     const pathname = usePathname();
-    const { isSignedIn } = useUser();
 
     const links = [
         { name: "Home", path: "/instructor/Home" },
