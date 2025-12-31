@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -12,6 +11,12 @@ enum Role {
   STUDENT
   INSTRUCTOR
   ADMIN
+}
+
+enum VideoState {
+  READY
+  PROCESSING
+  FAILED
 }
 
 model User {
@@ -105,12 +110,20 @@ model Lesson {
   id           String  @id @default(uuid())
   moduleId     String
   title        String
-  contentUrl   String
   thumbnailUrl String
-  duration     Int
   order        Int
   isPreview    Boolean @default(false)
   module       Module  @relation(fields: [moduleId], references: [id])
+  videoAssets  VideoAsset?
+}
+
+model VideoAsset {
+  id          String @id @default(uuid())
+  lessonId    String @unique
+  contentUrl  String
+  duration    Int
+  VideoState  VideoState @default(PROCESSING)
+  lesson      Lesson @relation(fields: [lessonId], references: [id])
 }
 
 model Enrollment {

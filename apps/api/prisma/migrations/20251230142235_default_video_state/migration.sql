@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "VideoAsset" ALTER COLUMN "VideoState" SET DEFAULT 'PROCESSING';
