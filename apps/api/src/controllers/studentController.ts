@@ -62,7 +62,12 @@ export const getProfile = async (req: Request, res: Response) => {
                                             select: {
                                                 id: true,
                                                 title: true,
-                                                duration: true,
+                                                videoAssets: {
+                                                    select: {
+                                                        duration: true,
+                                                        contentUrl: true,
+                                                    },
+                                                },
                                             },
                                         },
                                     },

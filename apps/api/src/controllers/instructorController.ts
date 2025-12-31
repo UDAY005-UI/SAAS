@@ -5,6 +5,7 @@ import cloudinary from "../services/cloudinaryServices.js";
 import fs from "fs";
 import { updateProfile } from "./studentController.js";
 import { Role } from "@prisma/client";
+import { VideoState } from "@prisma/client";
 
 export const createCourse = async (req: Request, res: Response) => {
     const { title, description, price, category } = req.body;
@@ -134,10 +135,17 @@ export const addLessons = async (req: Request, res: Response) => {
             data: {
                 moduleId,
                 title,
-                duration: parseInt(duration) || 0,
                 order: (maxOrder._max.order ?? 0) + 1,
-                contentUrl: videoUpload.secure_url,
                 thumbnailUrl,
+            },
+        });
+
+        const videoAsset = await prisma.videoAsset.create({
+            data: {
+                lessonId: lesson.id,
+                contentUrl: videoUpload.secure_url,
+                duration: parseInt(duration) || 0,
+                VideoState: VideoState.READY,
             },
         });
 
@@ -453,7 +461,7 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
 
     try {
         const courses = await prisma.course.findMany({
-            where: { instructorId },
+            where: { instructorId, published: true },
             include: {
                 modules: {
                     include: { lessons: true },

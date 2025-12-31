@@ -2,7 +2,6 @@ import { getAuth } from "@clerk/express";
 import { prisma } from "../lib/prisma.js";
 import { Request, Response } from "express";
 import { Role } from "@prisma/client";
-import { resolveSoa } from "dns";
 
 export const getAvailableCourses = async (req: Request, res: Response) => {
     try {
@@ -221,7 +220,7 @@ export const getModule = async (req: Request, res: Response) => {
     }
 };
 
-export const getLesson = async (req: Request, res: Response) => {
+export const getLessonsList = async (req: Request, res: Response) => {
     const { moduleId } = req.params;
     const { userId: clerkId } = getAuth(req);
 
@@ -299,9 +298,7 @@ export const getLesson = async (req: Request, res: Response) => {
             select: {
                 id: true,
                 title: true,
-                contentUrl: true,
                 thumbnailUrl: true,
-                duration: true,
                 order: true,
                 isPreview: true,
             },
@@ -314,6 +311,103 @@ export const getLesson = async (req: Request, res: Response) => {
         });
     } catch (err) {
         console.error("Error fetching lessons: ", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getLesson = async (req: Request, res: Response) => {
+    const { lessonId } = req.params;
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+        return res.status(401).json({ message: "User not authorized" });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId: clerkId },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!user || !lessonId) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        const lesson = await prisma.lesson.findUnique({
+            where: { id: lessonId },
+            select: {
+                title: true,
+                thumbnailUrl: true,
+                order: true,
+                isPreview: true,
+                module: {
+                    select: {
+                        course: {
+                            select: {
+                                id: true,
+                                instructorId: true,
+                                published: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const videoAsset = await prisma.videoAsset.findUnique({
+            where: { lessonId: lessonId },
+            select: {
+                contentUrl: true,
+                duration: true,
+                VideoState: true,
+            },
+        });
+
+        if (!lesson) {
+            return res.status(404).json({ message: "Lesson not found" });
+        }
+
+        const course = lesson.module.course;
+        const isOwner = course.instructorId === user.id;
+
+        if (!course.published && !isOwner) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        if (!isOwner && course.published) {
+            const enrollment = await prisma.enrollment.findUnique({
+                where: {
+                    userId_courseId: {
+                        userId: user.id,
+                        courseId: course.id,
+                    },
+                },
+            });
+
+            if (!enrollment) {
+                return res
+                    .status(403)
+                    .json({ message: "not enrolled in this course" });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                id: lessonId,
+                title: lesson.title,
+                videoState: videoAsset?.VideoState,
+                contentUrl: videoAsset?.contentUrl,
+                thumbnailUrl: lesson.thumbnailUrl,
+                duration: videoAsset?.duration,
+                order: lesson.order,
+                isPreview: lesson.isPreview,
+            },
+        });
+    } catch (err) {
+        console.error("Error fetching lesson: ", err);
         res.status(500).json({ message: "Internal server error" });
     }
 };
