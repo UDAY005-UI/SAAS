@@ -1,6 +1,8 @@
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
 
 type AvailableCourse = {
     id: string;
@@ -31,6 +33,7 @@ type AvailableCoursesProps = {
 
 export default function AvailableCourses({ courses }: AvailableCoursesProps) {
     const router = useRouter();
+    const { getToken } = useAuth();
 
     if (!courses || courses.length === 0) {
         return (
@@ -39,6 +42,28 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
             </div>
         );
     }
+
+    const createOrder = async (courseId: string) => {
+        try {
+            const token = await getToken();
+            const res = await axios.post(
+                `http://localhost:5500/api/payments/create-order/${courseId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    withCredentials: true,
+                }
+            );
+
+            const { approvalUrl } = res.data;
+
+            window.location.href = approvalUrl;
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
@@ -60,6 +85,10 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                         {course.title}
                     </h2>
 
+                    <p className="text-gray-400 text-xs mt-1">
+                        {course.description}
+                    </p>
+
                     <p className="text-[#47d4de] text-sm">
                         {course.instructor?.userProfile?.name ||
                             "Unknown Instructor"}
@@ -74,12 +103,10 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                     </p>
 
                     <button
-                        onClick={() =>
-                            router.push(`/instructor/Courses/${course.id}`)
-                        }
+                        onClick={() => createOrder(course.id)}
                         className="mt-4 bg-[#47d4de] w-full py-2 rounded-xl font-semibold hover:bg-[#3ac0ca]"
                     >
-                        View Course
+                        Purchase Course
                     </button>
                 </div>
             ))}
