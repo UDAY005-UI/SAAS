@@ -25,7 +25,7 @@ export default function Home() {
                         withCredentials: true,
                     }
                 );
-                setCourses(res.data.data || []);
+                setCourses(res.data || []);
             } catch (err) {
                 console.error("Failed to fetch courses: ", err);
             } finally {
@@ -34,7 +34,6 @@ export default function Home() {
         };
         fetchCourses();
     }, [getToken]);
-    console.log(courses);
 
     if (loading) {
         return (

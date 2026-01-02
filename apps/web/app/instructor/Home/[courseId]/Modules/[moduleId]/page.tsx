@@ -13,7 +13,6 @@ export default function Modules() {
     const { moduleId } = useParams<{ moduleId: string }>();
     const [lessons, setLessons] = useState([]);
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
 
     useEffect(() => {
         if (!moduleId) return;
