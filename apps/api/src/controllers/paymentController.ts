@@ -1,142 +1,160 @@
 import { Request, Response } from "express";
-import paypal from "@paypal/checkout-server-sdk";
-import client from "../services/paypalClient.js";
-import { createPayout } from "../services/payoutServices.js";
+import axios from "axios";
 import { prisma } from "../lib/prisma.js";
+import { getPayPalAccessToken } from "../services/paypalToken.js";
+import { getAuth } from "@clerk/express";
 
-export async function createOrder(req: Request, res: Response) {
-    const { courseId } = req.body;
-
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.prefer("return=representation");
-    request.requestBody({
-        intent: "CAPTURE",
-        purchase_units: [
-            {
-                amount: {
-                    currency: "USD",
-                    value: "100.00",
-                },
-                description: `Course ${courseId} enrollment`,
-            },
-        ],
-    });
-
+export const createOrder = async (req: Request, res: Response) => {
     try {
-        const order = await client.execute(request);
-        res.json({ id: order.result.id });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-}
+        const { courseId } = req.params;
 
-export async function captureOrder(req: Request, res: Response) {
-    const { orderId } = req.body;
-
-    const request = new paypal.orders.OrderCaptureRequest(orderId);
-    request.requestBody({});
-
-    try {
-        const capture = await client.execute(request);
-        res.json({ capture });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
-}
-
-export async function sendPayout(req: Request, res: Response) {
-    try {
-        const { email, amount } = req.body;
-
-        if (!email || !amount) {
-            return res
-                .status(400)
-                .json({ error: `Email and amount are required` });
+        if (!courseId) {
+            return res.status(400).json({ message: "courseId is required" });
         }
-
-        const result = await createPayout(email, amount);
-        return res.json(result);
-    } catch (err: any) {
-        console.error(err);
-        res.status(500).json({ error: err.message || "Internal server error" });
-    }
-}
-
-export const verifyPayment = async (req: Request, res: Response) => {
-    const { courseId, orderId, clerkId } = req.body;
-
-    if (!orderId || !courseId || !clerkId) {
-        return res.status(400).json({ message: "Missing parameters" });
-    }
-    try {
-        const request = new paypal.orders.OrderGetRequest(orderId);
-        const order = await client.execute(request);
-
-        if (order.result.status !== "COMPLETED") {
-            return res.status(400).json({ message: "Payment not completed" });
-        }
-
-        const amount = order.result.purchase_units[0].amount.value;
-        const transactionId = order.result.id;
-
-        const user = await prisma.user.findUnique({ where: { clerkId } });
-        if (!user) return res.status(404).json({ message: "User not found" });
 
         const course = await prisma.course.findUnique({
             where: { id: courseId },
+            select: { price: true },
         });
-        if (!course)
+
+        if (!course) {
             return res.status(404).json({ message: "Course not found" });
+        }
 
-        const alreadyEnrolled = await prisma.enrollment.findFirst({
-            where: { userId: user.id, courseId },
-        });
-        if (alreadyEnrolled)
-            return res.status(200).json({ message: "Already enrolled" });
+        const accessToken = await getPayPalAccessToken();
 
-        const payment = prisma.payment.create({
-            data: {
-                userId: user.id,
-                courseId,
-                instructorId: course.instructorId,
-                amount,
-                status: "COMPLETED",
-                transactionId,
+        const orderRes = await axios.post(
+            "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+            {
+                intent: "CAPTURE",
+                purchase_units: [
+                    {
+                        amount: {
+                            currency_code: "USD",
+                            value: course.price.toString(),
+                        },
+                    },
+                ],
+                application_context: {
+                    return_url: "http://localhost:3000/student/paypal/success",
+                    cancel_url: "http://localhost:3000/student/paypal/cancel",
+                },
             },
-        });
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
 
-        const enrollment = prisma.enrollment.create({
-            data: {
-                userId: user.id,
-                courseId,
-                progress: 0,
-                completed: false,
-            },
-        });
+        const approvalUrl = orderRes.data.links.find(
+            (l: any) => l.rel === "approve"
+        )?.href;
 
-        await prisma.userProfile.updateMany({
-            where: { userId: user.id },
-            data: { totalCoursesEnrolled: { increment: 1 } },
+        return res.json({
+            orderId: orderRes.data.id,
+            approvalUrl,
         });
-
-        await prisma.instructorProfile.updateMany({
-            where: { userId: course.instructorId },
-            data: {
-                totalStudents: { increment: 1 },
-                revenueGenerated: { increment: amount },
-            },
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: "Payment verified, access granted",
-            enrollment,
-            payment,
-        });
-    } catch (err) {
-        console.error(err);
+    } catch (err: any) {
+        console.error(err.response?.data || err);
         return res
             .status(500)
-            .json({ message: "Verification failed", error: err });
+            .json({ message: "PayPal order creation failed" });
+    }
+};
+
+export const captureOrder = async (req: Request, res: Response) => {
+    try {
+        const { orderId } = req.body;
+        const { courseId } = req.params;
+        const { userId } = getAuth(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        if (!orderId || !courseId) {
+            return res
+                .status(400)
+                .json({ message: "orderId and courseId are required" });
+        }
+
+        const course = await prisma.course.findUnique({
+            where: { id: courseId },
+            select: {
+                price: true,
+                instructorId: true,
+            },
+        });
+
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+
+        const existingPayment = await prisma.payment.findUnique({
+            where: { orderId },
+        });
+
+        if (existingPayment) {
+            return res.json({
+                success: true,
+                captureId: existingPayment.captureId,
+                message: "Payment already captured",
+            });
+        }
+
+        const accessToken = await getPayPalAccessToken();
+
+        const captureRes = await axios.post(
+            `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        if (captureRes.data.status !== "COMPLETED") {
+            return res.status(400).json({ message: "Payment not completed" });
+        }
+
+        const capture = captureRes.data.purchase_units[0].payments.captures[0];
+
+        if (capture.amount.value !== course.price.toString()) {
+            return res.status(400).json({ message: "Payment amount mismatch" });
+        }
+
+        await prisma.$transaction([
+            prisma.payment.create({
+                data: {
+                    userId,
+                    courseId,
+                    instructorId: course.instructorId,
+                    amount: course.price,
+                    status: captureRes.data.status,
+                    captureId: capture.id,
+                    orderId,
+                    payerEmail: captureRes.data.payer?.email_address ?? null,
+                },
+            }),
+
+            prisma.enrollment.create({
+                data: {
+                    userId,
+                    courseId,
+                },
+            }),
+        ]);
+
+        return res.json({
+            success: true,
+            captureId: capture.id,
+        });
+    } catch (err: any) {
+        console.error(err.response?.data || err);
+        return res.status(500).json({ message: "PayPal capture failed" });
     }
 };
