@@ -35,8 +35,8 @@ router.post(
     addLessons
 );
 router.post("/becomeInstructor", becomeInstructor);
-router.post("/publish-course", publishCourse);
-router.put("updateProfile", updateInstructorProfile);
+router.post("/:courseId/publish-course", publishCourse);
+router.put("/updateProfile", updateInstructorProfile);
 router.put("/update-course", updateCourse);
 router.put("/update-module", updateModule);
 router.put("/update-lesson", updateLesson);

@@ -161,11 +161,17 @@ export const addLessons = async (req: Request, res: Response) => {
 
 export const publishCourse = async (req: Request, res: Response) => {
     try {
-        const { courseId } = req.body;
+        const { courseId } = req.params;
+        const { userId } = getAuth(req);
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
         const user = await prisma.user.findUnique({
-            where: { clerkId: req.auth.userId! },
+            where: { clerkId: userId },
         });
         const instructorId = user?.id;
+        console.log(courseId);
 
         if (!courseId)
             return res.status(400).json({ message: "Course ID required" });
@@ -473,6 +479,7 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
             id: c.id,
             title: c.title,
             description: c.description,
+            thumbnailUrl: c.thumbnailUrl,
             category: c.category,
             price: c.price.toNumber(),
             published: c.published,
