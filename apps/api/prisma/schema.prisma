@@ -147,7 +147,9 @@ model Payment {
   instructorId  String
   amount        Decimal
   status        String
-  transactionId String   @unique
+  captureId     String   @unique
+  orderId       String   @unique
+  payerEmail    String   @unique
   createdAt     DateTime @default(now())
 
   user       User   @relation("UserPayments", fields: [userId], references: [id])
