@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import axios from "axios";
@@ -8,7 +9,6 @@ import axios from "axios";
 type FormState = {
     orgName: string;
     bio: string;
-    avatarUrl: string;
     country: string;
     website: string;
     github: string;
@@ -23,13 +23,15 @@ export default function InstructorOnboardingForm() {
     const [form, setForm] = useState<FormState>({
         orgName: "",
         bio: "",
-        avatarUrl: "",
         country: "",
         website: "",
         github: "",
         linkedin: "",
         twitter: "",
     });
+
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,6 @@ export default function InstructorOnboardingForm() {
         setError(null);
         setSuccessMsg(null);
 
-        // Basic validation
         if (!form.orgName.trim()) {
             setError("Organization name is required.");
             return;
@@ -65,7 +66,6 @@ export default function InstructorOnboardingForm() {
         }
 
         const urlFields: (keyof FormState)[] = [
-            "avatarUrl",
             "website",
             "github",
             "linkedin",
@@ -74,7 +74,7 @@ export default function InstructorOnboardingForm() {
 
         for (const f of urlFields) {
             if (!isValidUrl(form[f])) {
-                setError(`${f} must be a valid absolute URL (http/https).`);
+                setError(`${f} must be a valid URL (http/https).`);
                 return;
             }
         }
@@ -83,41 +83,41 @@ export default function InstructorOnboardingForm() {
 
         try {
             const token = await getToken();
-            const headers = {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            };
+            if (!token) return;
 
-            const payload = {
-                orgName: form.orgName || null,
-                bio: form.bio || null,
-                avatarUrl: form.avatarUrl || null,
-                country: form.country || null,
-                website: form.website || null,
-                github: form.github || null,
-                linkedin: form.linkedin || null,
-                twitter: form.twitter || null,
-            };
+            const formData = new FormData();
+
+            if (avatarFile) {
+                formData.append("avatar", avatarFile);
+            }
+
+            formData.append("orgName", form.orgName);
+            formData.append("bio", form.bio || "");
+            formData.append("country", form.country || "");
+            formData.append("website", form.website || "");
+            formData.append("github", form.github || "");
+            formData.append("linkedin", form.linkedin || "");
+            formData.append("twitter", form.twitter || "");
 
             const res = await axios.post(
                 "http://localhost:5500/api/instructors/becomeInstructor",
-                payload,
-                { headers, withCredentials: true }
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    withCredentials: true,
+                }
             );
 
             if (res.status === 200) {
-                setSuccessMsg("You are now an instructor. Redirecting...");
-                // IMPORTANT: revalidate your client user state here. Replace with your SWR/React-Query/Clerk refresh function.
-                // Example placeholders:
-                // await mutateUser(); // if using SWR or React Query
-                // or call Clerk client to refresh session if roles are stored in token
+                setSuccessMsg("You are now an instructor. Redirecting…");
 
                 try {
                     localStorage.setItem("uiMode", "instructor");
                 } catch {}
 
-                // small delay to show success (optional)
-                setTimeout(() => router.push("/instructor/dashboard"), 600);
+                setTimeout(() => router.push("/instructor/Dashboard"), 600);
             } else {
                 setError(res.data?.message || "Failed to become instructor");
             }
@@ -142,10 +142,43 @@ export default function InstructorOnboardingForm() {
                 <h1 className="text-white text-2xl font-semibold">
                     Instructor Onboarding
                 </h1>
-                <p className="text-sm text-gray-400">
-                    Share a little about yourself and your organization so
-                    students can find your courses.
-                </p>
+
+                {/* Avatar upload */}
+                <div className="flex items-center gap-4">
+                    <label
+                        htmlFor="avatar-upload"
+                        className="relative cursor-pointer"
+                    >
+                        <Image
+                            src={avatarPreview || "/default.png"}
+                            alt="avatar"
+                            width={80}
+                            height={80}
+                            className="rounded-full border border-neutral-700 object-cover"
+                        />
+                        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center text-xs text-gray-200 opacity-0 hover:opacity-100 transition">
+                            Upload
+                        </div>
+                    </label>
+
+                    <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                                setAvatarFile(file);
+                                setAvatarPreview(URL.createObjectURL(file));
+                            }
+                        }}
+                    />
+
+                    <p className="text-sm text-gray-400">
+                        Instructor avatar (optional)
+                    </p>
+                </div>
 
                 <div className="space-y-1">
                     <label className="text-gray-300 text-sm">
@@ -167,7 +200,6 @@ export default function InstructorOnboardingForm() {
                         onChange={(e) => update("bio", e.target.value)}
                         className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
                         rows={5}
-                        placeholder="What you teach, experience, topics, etc."
                         maxLength={2000}
                     />
                     <div className="text-xs text-gray-500">
@@ -176,71 +208,29 @@ export default function InstructorOnboardingForm() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                        <label className="text-gray-300 text-sm">
-                            Avatar URL
-                        </label>
-                        <input
-                            value={form.avatarUrl}
-                            onChange={(e) =>
-                                update("avatarUrl", e.target.value)
-                            }
-                            className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
-                            placeholder="https://..."
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-gray-300 text-sm">Country</label>
-                        <input
-                            value={form.country}
-                            onChange={(e) => update("country", e.target.value)}
-                            className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
-                            placeholder="Country"
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-gray-300 text-sm">Website</label>
-                        <input
-                            value={form.website}
-                            onChange={(e) => update("website", e.target.value)}
-                            className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
-                            placeholder="https://your-site.com"
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-gray-300 text-sm">GitHub</label>
-                        <input
-                            value={form.github}
-                            onChange={(e) => update("github", e.target.value)}
-                            className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
-                            placeholder="https://github.com/username"
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-gray-300 text-sm">
-                            LinkedIn
-                        </label>
-                        <input
-                            value={form.linkedin}
-                            onChange={(e) => update("linkedin", e.target.value)}
-                            className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
-                            placeholder="https://linkedin.com/in/..."
-                        />
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-gray-300 text-sm">Twitter</label>
-                        <input
-                            value={form.twitter}
-                            onChange={(e) => update("twitter", e.target.value)}
-                            className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
-                            placeholder="https://twitter.com/..."
-                        />
-                    </div>
+                    {[
+                        ["Country", "country"],
+                        ["Website", "website"],
+                        ["GitHub", "github"],
+                        ["LinkedIn", "linkedin"],
+                        ["Twitter", "twitter"],
+                    ].map(([label, key]) => (
+                        <div key={key} className="space-y-1">
+                            <label className="text-gray-300 text-sm">
+                                {label}
+                            </label>
+                            <input
+                                value={(form as any)[key]}
+                                onChange={(e) =>
+                                    update(
+                                        key as keyof FormState,
+                                        e.target.value
+                                    )
+                                }
+                                className="w-full rounded bg-neutral-800 border border-neutral-700 text-white p-2"
+                            />
+                        </div>
+                    ))}
                 </div>
 
                 {error && <div className="text-sm text-red-400">{error}</div>}
@@ -267,7 +257,6 @@ export default function InstructorOnboardingForm() {
                 </div>
 
                 <p className="text-xs text-gray-500">
-                    By becoming an instructor you agree to our platform terms.
                     You can edit these details later from your instructor
                     profile.
                 </p>
