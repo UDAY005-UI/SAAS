@@ -15,7 +15,7 @@ export default function Home() {
         } else {
             openSignUp({
                 afterSignInUrl: "/student/Home",
-                afterSignUpUrl: "/Onboarding",
+                afterSignUpUrl: "/student/Home",
             });
         }
     };
