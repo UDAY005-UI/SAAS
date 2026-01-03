@@ -1,6 +1,8 @@
 import { prisma } from "../lib/prisma.js";
 import { Request, Response } from "express";
 import { getAuth } from "@clerk/express";
+import cloudinary from "../services/cloudinaryServices.js";
+import fs from "fs";
 
 export const getProfile = async (req: Request, res: Response) => {
     const { userId } = getAuth(req);
@@ -125,22 +127,31 @@ export const getProfile = async (req: Request, res: Response) => {
 
 export const updateProfile = async (req: Request, res: Response) => {
     const { userId } = getAuth(req);
-
     if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
     }
-    const {
-        name,
-        bio,
-        avatarUrl,
-        country,
-        website,
-        github,
-        linkedin,
-        twitter,
-    } = req.body;
+    const { name, bio, country, website, github, linkedin, twitter } = req.body;
+
+    const files = req.files as {
+        [fieldName: string]: Express.Multer.File[];
+    };
+
+    const avatarUrlFile = files?.avatarUrl?.[0];
 
     try {
+        let avatarUrl: string | null = null;
+
+        if (avatarUrlFile) {
+            const avatarUpload = await cloudinary.uploader.upload(
+                avatarUrlFile.path,
+                {
+                    folder: "student/avatars",
+                }
+            );
+            avatarUrl = avatarUpload.secure_url;
+            fs.unlinkSync(avatarUrlFile.path);
+        }
+
         const user = await prisma.user.findUnique({
             where: { clerkId: userId ?? undefined },
             include: { userProfile: true },
@@ -187,6 +198,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 export const getPurchasedCourses = async (req: Request, res: Response) => {
     const { userId } = getAuth(req);
+
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
     try {

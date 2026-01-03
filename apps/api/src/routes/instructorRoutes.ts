@@ -34,9 +34,17 @@ router.post(
     ]),
     addLessons
 );
-router.post("/becomeInstructor", becomeInstructor);
+router.post(
+    "/becomeInstructor",
+    upload.fields([{ name: "avatar", maxCount: 1 }]),
+    becomeInstructor
+);
 router.post("/:courseId/publish-course", publishCourse);
-router.put("/updateProfile", updateInstructorProfile);
+router.put(
+    "/update-profile",
+    upload.fields([{ name: "avatar", maxCount: 1 }]),
+    updateInstructorProfile
+);
 router.put("/update-course", updateCourse);
 router.put("/update-module", updateModule);
 router.put("/update-lesson", updateLesson);

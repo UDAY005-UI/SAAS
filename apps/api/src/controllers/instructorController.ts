@@ -525,16 +525,14 @@ export const becomeInstructor = async (req: Request, res: Response) => {
         return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const {
-        orgName,
-        bio,
-        avatarUrl,
-        country,
-        website,
-        github,
-        linkedin,
-        twitter,
-    } = req.body ?? {};
+    const { orgName, bio, country, website, github, linkedin, twitter } =
+        req.body ?? {};
+
+    const files = req.files as {
+        [fieldName: string]: Express.Multer.File[];
+    };
+
+    const avatarUrlFile = files?.avatarUrl?.[0];
 
     const errors: string[] = [];
     const maxLen = (v?: string, n = 200) => (v && v.length > n ? true : false);
@@ -551,8 +549,6 @@ export const becomeInstructor = async (req: Request, res: Response) => {
     if (orgName && maxLen(orgName, 200))
         errors.push("orgName too long (max 200 chars)");
     if (bio && maxLen(bio, 2000)) errors.push("bio too long (max 2000 chars)");
-    if (avatarUrl && !isValidUrl(avatarUrl))
-        errors.push("avatarUrl must be a valid absolute URL (http/https)");
     if (website && !isValidUrl(website))
         errors.push("website must be a valid absolute URL (http/https)");
     if (github && !isValidUrl(github))
@@ -571,6 +567,19 @@ export const becomeInstructor = async (req: Request, res: Response) => {
     }
 
     try {
+        let avatarUrl: string | null = null;
+
+        if (avatarUrlFile) {
+            const avatarUpload = await cloudinary.uploader.upload(
+                avatarUrlFile.path,
+                {
+                    folder: "instructor/avatars",
+                }
+            );
+            avatarUrl = avatarUpload.secure_url;
+            fs.unlinkSync(avatarUrlFile.path);
+        }
+
         const user = await prisma.user.findUnique({
             where: { clerkId },
             select: { id: true, roles: true },
@@ -693,18 +702,29 @@ export const updateInstructorProfile = async (req: Request, res: Response) => {
         return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const {
-        orgName,
-        bio,
-        avatarUrl,
-        country,
-        website,
-        github,
-        linkedin,
-        twitter,
-    } = req.body ?? {};
+    const { orgName, bio, country, website, github, linkedin, twitter } =
+        req.body ?? {};
+
+    const files = req.files as {
+        [fieldName: string]: Express.Multer.File[];
+    };
+
+    const avatarUrlFile = files?.avatarUrl?.[0];
 
     try {
+        let avatarUrl: string | null = null;
+
+        if (avatarUrlFile) {
+            const avatarUpload = await cloudinary.uploader.upload(
+                avatarUrlFile.path,
+                {
+                    folder: "instructor/avatars",
+                }
+            );
+            avatarUrl = avatarUpload.secure_url;
+            fs.unlinkSync(avatarUrlFile.path);
+        }
+
         const user = await prisma.user.findUnique({
             where: { clerkId },
             include: { instructorProfile: true },
