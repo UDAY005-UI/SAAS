@@ -19,7 +19,7 @@ export default function Dashboard() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    `http://localhost:5500/api/instructors/getProfile`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/getProfile`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
