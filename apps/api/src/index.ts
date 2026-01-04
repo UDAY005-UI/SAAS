@@ -10,7 +10,7 @@ import courseRoutes from "./routes/courseRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
 dotenv.config();
 
-const PORT = 5500;
+const PORT = process.env.PORT || 5500;
 const app: Express = express();
 
 app.use(express.json());
@@ -30,7 +30,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options("/*", cors(corsOptions));
 
 app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
