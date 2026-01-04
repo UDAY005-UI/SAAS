@@ -324,8 +324,6 @@ export const getLessonsList = async (req: Request, res: Response) => {
             return res.status(403).json({ message: "Access denied" });
         }
 
-        let isEnrolled = false;
-
         if (!isOwner && course.published) {
             const enrollment = await prisma.enrollment.findUnique({
                 where: {
@@ -341,8 +339,6 @@ export const getLessonsList = async (req: Request, res: Response) => {
                     .status(403)
                     .json({ message: "not enrolled in this course" });
             }
-
-            isEnrolled = true;
         }
 
         const lessons = await prisma.lesson.findMany({

@@ -140,7 +140,7 @@ export const addLessons = async (req: Request, res: Response) => {
             },
         });
 
-        const videoAsset = await prisma.videoAsset.create({
+        await prisma.videoAsset.create({
             data: {
                 lessonId: lesson.id,
                 contentUrl: videoUpload.secure_url,
@@ -225,7 +225,6 @@ export const updateCourse = async (req: Request, res: Response) => {
             .json({ message: "Instructor and course ID must be provided" });
     }
     try {
-        let thumbnailUrl: string | null = null;
         const data: any = {};
 
         if (thumbnailFile) {
@@ -728,7 +727,7 @@ export const becomeInstructor = async (req: Request, res: Response) => {
                 },
             });
 
-            const updatedUser = await tx.user.findUnique({
+            await tx.user.findUnique({
                 where: { id: user.id },
                 include: { instructorProfile: true, userProfile: true },
             });
