@@ -18,24 +18,19 @@ app.use(clerkMiddleware());
 
 const allowedOrigins = ["http://localhost:3000", process.env.FRONTEND_URL];
 
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            if (!origin) {
-                return callback(null, true);
-            }
+const corsOptions = {
+    origin: (origin: string | undefined, callback: Function) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-
-            return callback(new Error("Not allowed by CORS"));
-        },
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        credentials: true,
-        allowedHeaders: ["Content-Type", "Authorization"],
-    })
-);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
