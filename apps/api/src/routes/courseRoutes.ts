@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import {
     getAvailableCourses,
     getUnpublishedCourses,
+    getCourse,
     getModule,
     getLessonsList,
     getLesson,
@@ -11,6 +12,7 @@ const router: Router = express.Router();
 
 router.get("/getCourses", getAvailableCourses);
 router.get("/get-unpublished-courses", getUnpublishedCourses);
+router.get("/:courseId/course", getCourse);
 router.get("/:courseId/modules", getModule);
 router.get("/:moduleId/lessons-list", getLessonsList);
 router.get("/:lessonId/lesson", getLesson);

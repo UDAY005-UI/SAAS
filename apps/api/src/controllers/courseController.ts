@@ -93,6 +93,61 @@ export const getUnpublishedCourses = async (req: Request, res: Response) => {
     }
 };
 
+export const getCourse = async (req: Request, res: Response) => {
+    const { courseId } = req.params;
+    const { userId: clerkId } = getAuth(req);
+
+    if (!clerkId) {
+        return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId: clerkId },
+            select: {
+                id: true,
+                roles: true,
+            },
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
+        }
+
+        const course = await prisma.course.findUnique({
+            where: { id: courseId },
+            select: {
+                title: true,
+                description: true,
+                price: true,
+                category: true,
+                thumbnailUrl: true,
+                instructorId: true,
+            },
+        });
+
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+
+        const isInstructor = user.roles.includes("INSTRUCTOR");
+        const isOwner = course.instructorId === user.id;
+
+        if (isInstructor && isOwner) {
+            return res.status(200).json({
+                success: true,
+                data: course,
+            });
+        }
+        return res
+            .status(403)
+            .json({ message: "You are not allowed to access this resource" });
+    } catch (err) {
+        console.error("Failed to get course", err);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 export const getModule = async (req: Request, res: Response) => {
     const { courseId } = req.params;
     const { userId: clerkId } = getAuth(req);

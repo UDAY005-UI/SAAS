@@ -207,31 +207,78 @@ export const publishCourse = async (req: Request, res: Response) => {
 };
 
 export const updateCourse = async (req: Request, res: Response) => {
-    const { courseId, title, description, price, category } = req.body;
+    const { courseId } = req.params;
+    const { title, description, price, category } = req.body;
+
+    const files = req.files as {
+        [fieldname: string]: Express.Multer.File[];
+    };
+    const thumbnailFile = files?.thumbnail?.[0];
     const user = await prisma.user.findUnique({
         where: { clerkId: req.auth.userId! },
     });
     const instructorId = user?.id;
 
-    if (!instructorId || !courseId)
+    if (!instructorId || !courseId) {
         return res
             .status(400)
             .json({ message: "Instructor and course ID must be provided" });
-
+    }
     try {
+        let thumbnailUrl: string | null = null;
+        const data: any = {};
+
+        if (thumbnailFile) {
+            const thumbUpload = await cloudinary.uploader.upload(
+                thumbnailFile.path,
+                {
+                    folder: "course/thumbnails",
+                }
+            );
+            data.thumbnailUrl = thumbUpload.secure_url;
+            fs.unlinkSync(thumbnailFile.path);
+        }
+
         const course = await prisma.course.findUnique({
             where: { id: courseId },
         });
 
-        if (course?.instructorId === instructorId) {
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+
+        if (course.instructorId !== instructorId) {
+            return res
+                .status(403)
+                .json({ message: "You cannot update this course" });
+        }
+
+        if (course.published) {
+            return res
+                .status(400)
+                .json({ message: "Published courses cannot be edited" });
+        }
+
+        if (title !== undefined) {
+            data.title = title;
+        }
+
+        if (description !== undefined) {
+            data.description = description;
+        }
+
+        if (category !== undefined) {
+            data.category = category;
+        }
+
+        if (price !== undefined) {
+            data.price = price;
+        }
+
+        if (course?.instructorId === instructorId && !course.published) {
             const updatedCourse = await prisma.course.update({
                 where: { id: courseId },
-                data: {
-                    title,
-                    description,
-                    price,
-                    category,
-                },
+                data,
             });
             return res.status(200).json({
                 message: "course updated successfully",
@@ -247,17 +294,44 @@ export const updateCourse = async (req: Request, res: Response) => {
 };
 
 export const updateModule = async (req: Request, res: Response) => {
-    const { courseId, moduleId, title, description } = req.body;
+    const { moduleId } = req.params;
+    const { title, description } = req.body;
+    const user = await prisma.user.findUnique({
+        where: { clerkId: req.auth.userId! },
+    });
+    const instructorId = user?.id;
 
-    if (!moduleId || !courseId)
-        return res.status(404).json({ message: "all fields are required" });
+    if (!moduleId)
+        return res.status(404).json({ message: "module ID is required" });
 
     try {
         const module = await prisma.module.findUnique({
             where: { id: moduleId },
+            select: {
+                course: true,
+            },
         });
 
-        if (module?.courseId === courseId) {
+        if (!module) {
+            return res.status(404).json({ message: "Module not found" });
+        }
+
+        if (module.course.instructorId !== instructorId) {
+            return res
+                .status(403)
+                .json({ message: "You cannot update this module" });
+        }
+
+        if (module.course.published) {
+            return res
+                .status(400)
+                .json({ message: "Published courses cannot be edited" });
+        }
+
+        if (
+            module?.course.instructorId === instructorId &&
+            !module?.course.published
+        ) {
             const updatedModule = await prisma.module.update({
                 where: { id: moduleId },
                 data: {
@@ -279,7 +353,8 @@ export const updateModule = async (req: Request, res: Response) => {
 };
 
 export const updateLesson = async (req: Request, res: Response) => {
-    const { moduleId, lessonId, title, duration } = req.body;
+    const { lessonId } = req.params;
+    const { title, duration } = req.body;
     const files = req.files as {
         [fieldname: string]: Express.Multer.File[];
     };
@@ -287,17 +362,36 @@ export const updateLesson = async (req: Request, res: Response) => {
     const videoFile = files?.video?.[0];
     const thumbnailFile = files.thumbnail?.[0];
 
-    if (!moduleId || !lessonId)
+    const user = await prisma.user.findUnique({
+        where: { clerkId: req.auth.userId! },
+    });
+    const instructorId = user?.id;
+
+    if (!lessonId)
         return res.status(400).json({ message: "Missing required fields" });
 
     try {
         const lesson = await prisma.lesson.findUnique({
             where: { id: lessonId },
+            select: {
+                module: {
+                    select: {
+                        course: true,
+                    },
+                },
+            },
         });
+
         if (!lesson)
             return res.status(404).json({ message: "Lesson not found" });
 
-        if (lesson.moduleId !== moduleId)
+        if (lesson.module.course.published) {
+            return res
+                .status(400)
+                .json({ message: "Published courses cannot be edited" });
+        }
+
+        if (lesson.module.course.instructorId !== instructorId)
             return res
                 .status(404)
                 .json({ message: "You cannot update this lesson" });
@@ -344,7 +438,7 @@ export const updateLesson = async (req: Request, res: Response) => {
 };
 
 export const deleteCourse = async (req: Request, res: Response) => {
-    const { courseId } = req.body;
+    const { courseId } = req.params;
     const user = await prisma.user.findUnique({
         where: { clerkId: req.auth.userId! },
     });
@@ -353,7 +447,9 @@ export const deleteCourse = async (req: Request, res: Response) => {
         return res.status(400).json({ message: "all fields are required" });
 
     try {
-        const course = await prisma.course.findUnique({ where: courseId });
+        const course = await prisma.course.findUnique({
+            where: { id: courseId },
+        });
         if (!course)
             return res.status(400).json({ message: "Course not found" });
 
@@ -381,7 +477,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
 };
 
 export const deleteModule = async (req: Request, res: Response) => {
-    const { moduleId } = req.body;
+    const { moduleId } = req.params;
     const user = await prisma.user.findUnique({
         where: { clerkId: req.auth.userId! },
     });
@@ -417,7 +513,7 @@ export const deleteModule = async (req: Request, res: Response) => {
 };
 
 export const deleteLesson = async (req: Request, res: Response) => {
-    const { lessonId } = req.body;
+    const { lessonId } = req.params;
     const user = await prisma.user.findUnique({
         where: { clerkId: req.auth.userId! },
     });
@@ -447,7 +543,14 @@ export const deleteLesson = async (req: Request, res: Response) => {
                 .status(403)
                 .json({ message: "You cannot delete this lesson" });
 
-        await prisma.lesson.delete({ where: { id: lessonId } });
+        await prisma.$transaction([
+            prisma.videoAsset.deleteMany({
+                where: { lessonId },
+            }),
+            prisma.lesson.delete({
+                where: { id: lessonId },
+            }),
+        ]);
 
         res.status(200).json({ message: "Lesson delete successfully" });
     } catch (err) {
