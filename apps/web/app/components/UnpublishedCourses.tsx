@@ -1,4 +1,5 @@
 "use client";
+
 import axios from "axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ type AvailableCourse = {
     category: string;
     thumbnailUrl: string;
     price: string;
-    published: string;
+    published: boolean;
     createdAt: string;
     instructor: {
         userProfile?: {
@@ -35,40 +36,57 @@ type AvailableCoursesProps = {
 export default function AvailableCourses({ courses }: AvailableCoursesProps) {
     const { getToken } = useAuth();
     const router = useRouter();
+
+    const [localCourses, setLocalCourses] = useState(courses);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [courseId, setCourseId] = useState<string | null>(null);
-    const [isPublishing, setIsPublishing] = useState(false);
+
+    const [action, setAction] = useState<"publish" | "delete" | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const closeModal = () => {
         setCourseId(null);
-        setIsPublishing(false);
+        setAction(null);
+        setIsLoading(false);
     };
 
-    const confirmPublish = async () => {
-        if (!courseId) return;
+    const confirmAction = async () => {
+        if (!courseId || !action) return;
 
         try {
             const token = await getToken();
+            setIsLoading(true);
 
-            setIsPublishing(true);
+            if (action === "publish") {
+                await axios.post(
+                    `http://localhost:5500/api/instructors/${courseId}/publish-course`,
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true,
+                    }
+                );
+            }
 
-            await axios.post(
-                `http://localhost:5500/api/instructors/${courseId}/publish-course`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                    withCredentials: true,
-                }
+            if (action === "delete") {
+                await axios.delete(
+                    `http://localhost:5500/api/instructors/${courseId}/delete-course`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true,
+                    }
+                );
+            }
+            setLocalCourses((prev) =>
+                prev.filter((course) => course.id !== courseId)
             );
 
             closeModal();
             router.refresh();
         } catch (err) {
             console.error(err);
-            alert("Failed to publish course");
-            setIsPublishing(false);
+            alert(`Failed to ${action} course`);
+            setIsLoading(false);
         }
     };
 
@@ -82,45 +100,61 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
 
     return (
         <>
-            {courseId && (
+            {/* Confirmation Modal */}
+            {courseId && action && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                     <div className="bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl w-full max-w-md p-6">
                         <h2 className="text-white text-lg font-semibold">
-                            Publish course?
+                            {action === "publish"
+                                ? "Publish course?"
+                                : "Delete course?"}
                         </h2>
 
                         <p className="text-gray-400 text-sm mt-2">
-                            Once published, this course will be visible to
-                            students. You can still edit it later.
+                            {action === "publish"
+                                ? "Once published, this course will be visible to students."
+                                : "This action is permanent. The course and all its content will be deleted."}
                         </p>
 
                         <div className="flex justify-end gap-3 mt-6">
                             <button
                                 onClick={closeModal}
-                                disabled={isPublishing}
+                                disabled={isLoading}
                                 className="px-4 py-2 rounded-xl text-gray-300 hover:bg-[#1e2f2f]"
                             >
                                 Cancel
                             </button>
 
                             <button
-                                onClick={confirmPublish}
-                                disabled={isPublishing}
-                                className="px-4 py-2 rounded-xl bg-[#47d4de] text-black font-semibold hover:bg-[#3ac0ca] disabled:opacity-60"
+                                onClick={confirmAction}
+                                disabled={isLoading}
+                                className={`px-4 py-2 rounded-xl font-semibold ${
+                                    action === "publish"
+                                        ? "bg-[#47d4de] text-black hover:bg-[#3ac0ca]"
+                                        : "bg-red-500 text-white hover:bg-red-600"
+                                } disabled:opacity-60`}
                             >
-                                {isPublishing ? "Publishing..." : "Confirm"}
+                                {isLoading
+                                    ? action === "publish"
+                                        ? "Publishing..."
+                                        : "Deleting..."
+                                    : action === "publish"
+                                      ? "Confirm"
+                                      : "Delete"}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Courses Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-                {courses.map((course) => (
+                {localCourses.map((course) => (
                     <div
                         key={course.id}
                         className="relative bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl p-5 hover:scale-[1.02] transition"
                     >
+                        {/* Menu */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={(e) => {
@@ -133,8 +167,7 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                                 }}
                                 className="text-gray-300 hover:text-white text-xl px-2"
                             >
-                                {" "}
-                                ⋮{" "}
+                                ⋮
                             </button>
 
                             {openMenuId === course.id && (
@@ -148,6 +181,7 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                                             onClick={() => {
                                                 setOpenMenuId(null);
                                                 setCourseId(course.id);
+                                                setAction("publish");
                                             }}
                                         >
                                             Publish Course
@@ -165,9 +199,22 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                                     >
                                         Edit Course
                                     </button>
+
+                                    <button
+                                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#1e2f2f]"
+                                        onClick={() => {
+                                            setOpenMenuId(null);
+                                            setCourseId(course.id);
+                                            setAction("delete");
+                                        }}
+                                    >
+                                        Delete Course
+                                    </button>
                                 </div>
                             )}
                         </div>
+
+                        {/* Thumbnail */}
                         <div className="relative w-full h-40 rounded-xl overflow-hidden">
                             <Image
                                 src={course.thumbnailUrl || "/placeholder.jpg"}
@@ -177,16 +224,17 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                             />
                         </div>
 
+                        {/* Content */}
                         <h2 className="text-white text-lg font-bold mt-4">
                             {course.title}
                         </h2>
 
-                        <p className="text-gray-400 text-xs mt-1">
+                        <p className="text-gray-400 text-xs mt-1 line-clamp-2">
                             {course.description}
                         </p>
 
-                        <p className="text-[#47d4de] text-sm">
-                            {course.instructor?.userProfile?.name ||
+                        <p className="text-[#47d4de] text-sm mt-1">
+                            {course.instructor?.userProfile?.name ??
                                 "Unknown Instructor"}
                         </p>
 
