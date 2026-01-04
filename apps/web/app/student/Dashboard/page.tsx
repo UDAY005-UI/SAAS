@@ -42,7 +42,6 @@ export default function Dashboard() {
         Array.isArray(user?.roles) && user.roles.includes("INSTRUCTOR");
 
     const handleBecomeInstructor = () => {
-        // navigate to onboarding page (or open a modal)
         router.push("/InstructorOnboarding");
     };
 
@@ -50,7 +49,7 @@ export default function Dashboard() {
         try {
             localStorage.setItem("uiMode", "instructor");
         } catch {}
-        // optional: revalidate / refresh server session or /api/me
+
         router.push("/instructor/Dashboard");
     };
 
@@ -75,7 +74,6 @@ export default function Dashboard() {
                     <Profile user={user} />
                 </div>
 
-                {/* CTA area */}
                 <div className="mt-6 flex justify-center">
                     {!isInstructor ? (
                         <div className="w-full max-w-md text-center">
