@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
@@ -8,36 +8,39 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
+
 dotenv.config();
 
-const PORT = 5500;
 const app: Express = express();
+
+const PORT = process.env.PORT || 5500;
 
 app.use(express.json());
 
-const allowedOrigins = ["http://localhost:3000", process.env.FRONTEND_URL];
+const allowedOrigins = [
+    "https://saas-web-nine.vercel.app",
+    "http://localhost:3000",
+];
 
-const corsOptions = {
-    origin: (origin: string | undefined, callback: Function) => {
-        if (!origin) return callback(null, true);
-
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, origin);
-        }
-
-        return callback(null, false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-app.use(cors(corsOptions));
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "Clerk-JS-Version"],
+    })
+);
 
 app.use(clerkMiddleware());
 
 app.get("/health", (_req, res) => {
-    res.status(200).json({ status: "ok" });
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 app.use("/api/users", userRoutes);
@@ -51,8 +54,15 @@ app.get("/api/protected", requireAuth(), (req: Request, res: Response) => {
     res.json({ message: "Authenticated route" });
 });
 
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({
+        error: err.message || "Internal Server Error",
+    });
+});
+
 app.listen(PORT, () => {
-    console.log(`API running on http://localhost:${PORT}`);
+    console.log(`API running on port ${PORT}`);
 });
 
 export default app;
