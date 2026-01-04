@@ -22,7 +22,7 @@ export default function Courses() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    `http://localhost:5500/api/courses/${courseId}/modules`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/modules`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

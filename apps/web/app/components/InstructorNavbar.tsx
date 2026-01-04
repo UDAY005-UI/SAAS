@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 

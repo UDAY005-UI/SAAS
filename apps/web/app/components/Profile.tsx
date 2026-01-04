@@ -77,7 +77,7 @@ export function Profile({ user }: ProfileProps) {
             formData.append("twitter", form.twitter);
 
             await axios.put(
-                "http://localhost:5500/api/students/update-profile",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/students/update-profile`,
                 formData,
                 {
                     headers: {
@@ -212,7 +212,6 @@ export function Profile({ user }: ProfileProps) {
                 )}
             </div>
 
-            {/* Links */}
             {[
                 ["Website", "website"],
                 ["GitHub", "github"],

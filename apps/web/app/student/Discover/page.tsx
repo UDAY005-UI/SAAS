@@ -17,7 +17,7 @@ export default function Discover() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    "http://localhost:5500/api/courses/getCourses",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/getCourses`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

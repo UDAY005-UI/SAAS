@@ -31,7 +31,7 @@ export default function NewModule() {
         const token = await getToken();
 
         await axios.post(
-            `http://localhost:5500/api/instructors/${courseId}/add-modules`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/${courseId}/add-modules`,
             {
                 title: form.title,
                 description: form.description,

@@ -20,11 +20,7 @@ export default function AvailableModules({ modules }: AvailableModulesProps) {
     const { courseId } = useParams<{ courseId: string }>();
     const router = useRouter();
     const { getToken } = useAuth();
-
-    // local state for optimistic delete
     const [localModules, setLocalModules] = useState(modules);
-
-    // UI state
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [moduleToDelete, setModuleToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -42,14 +38,13 @@ export default function AvailableModules({ modules }: AvailableModulesProps) {
             setIsDeleting(true);
 
             await axios.delete(
-                `http://localhost:5500/api/instructors/${moduleToDelete}/delete-module`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/${moduleToDelete}/delete-module`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 }
             );
 
-            // ✅ remove from UI immediately
             setLocalModules((prev) =>
                 prev.filter((m) => m.id !== moduleToDelete)
             );
@@ -72,7 +67,6 @@ export default function AvailableModules({ modules }: AvailableModulesProps) {
 
     return (
         <>
-            {/* Delete confirmation modal */}
             {moduleToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                     <div className="bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl w-full max-w-md p-6">
@@ -106,14 +100,12 @@ export default function AvailableModules({ modules }: AvailableModulesProps) {
                 </div>
             )}
 
-            {/* Modules grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
                 {localModules.map((module) => (
                     <div
                         key={module.id}
                         className="relative bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl p-5 hover:scale-[1.02] transition"
                     >
-                        {/* 3-dot menu */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={(e) => {
@@ -147,7 +139,6 @@ export default function AvailableModules({ modules }: AvailableModulesProps) {
                             )}
                         </div>
 
-                        {/* Content */}
                         <h2 className="text-white text-lg font-bold mt-4">
                             {module.title}
                         </h2>

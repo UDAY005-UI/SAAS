@@ -23,13 +23,11 @@ export default function Navbar() {
       backdrop-blur-xl bg-white/10 border border-white/20
       rounded-2xl shadow-lg text-white"
         >
-            {/* Logo */}
             <Link href="/" className="text-2xl font-bold tracking-wide">
                 <span className="text-white">Learn</span>
                 <span className="text-[#47d4de]">ify</span>
             </Link>
 
-            {/* Links */}
             <div className="flex items-center gap-6">
                 {links.map(({ name, path }) => {
                     const active = pathname === path;
@@ -50,7 +48,6 @@ export default function Navbar() {
                 })}
             </div>
 
-            {/* Account Button */}
             <div className="ml-4">
                 <UserButton
                     afterSignOutUrl="/"

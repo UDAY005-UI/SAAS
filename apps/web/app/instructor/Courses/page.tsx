@@ -19,7 +19,7 @@ export default function Courses() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    "http://localhost:5500/api/courses/get-unpublished-courses",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/get-unpublished-courses`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

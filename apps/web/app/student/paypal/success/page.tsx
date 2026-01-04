@@ -25,7 +25,7 @@ export default function PaypalSuccessPage() {
                 const token = await getToken();
 
                 await axios.post(
-                    "http://localhost:5500/api/payments/capture-order",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/payments/capture-order`,
                     { orderId },
                     {
                         headers: {

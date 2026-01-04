@@ -59,7 +59,7 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
 
             if (action === "publish") {
                 await axios.post(
-                    `http://localhost:5500/api/instructors/${courseId}/publish-course`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/${courseId}/publish-course`,
                     {},
                     {
                         headers: { Authorization: `Bearer ${token}` },
@@ -70,7 +70,7 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
 
             if (action === "delete") {
                 await axios.delete(
-                    `http://localhost:5500/api/instructors/${courseId}/delete-course`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/${courseId}/delete-course`,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                         withCredentials: true,
@@ -100,7 +100,6 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
 
     return (
         <>
-            {/* Confirmation Modal */}
             {courseId && action && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                     <div className="bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl w-full max-w-md p-6">
@@ -147,14 +146,12 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                 </div>
             )}
 
-            {/* Courses Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
                 {localCourses.map((course) => (
                     <div
                         key={course.id}
                         className="relative bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl p-5 hover:scale-[1.02] transition"
                     >
-                        {/* Menu */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={(e) => {
@@ -214,7 +211,6 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                             )}
                         </div>
 
-                        {/* Thumbnail */}
                         <div className="relative w-full h-40 rounded-xl overflow-hidden">
                             <Image
                                 src={course.thumbnailUrl || "/placeholder.jpg"}
@@ -224,7 +220,6 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
                             />
                         </div>
 
-                        {/* Content */}
                         <h2 className="text-white text-lg font-bold mt-4">
                             {course.title}
                         </h2>

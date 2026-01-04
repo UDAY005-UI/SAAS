@@ -100,7 +100,7 @@ export default function InstructorOnboardingForm() {
             formData.append("twitter", form.twitter || "");
 
             const res = await axios.post(
-                "http://localhost:5500/api/instructors/becomeInstructor",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/becomeInstructor`,
                 formData,
                 {
                     headers: {

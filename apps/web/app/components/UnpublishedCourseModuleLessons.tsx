@@ -48,14 +48,13 @@ export default function AvailableLessons({ lessons }: AvailableLessonsProps) {
             setIsDeleting(true);
 
             await axios.delete(
-                `http://localhost:5500/api/instructors/${lessonToDelete}/delete-lesson`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/${lessonToDelete}/delete-lesson`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 }
             );
 
-            // ✅ remove from UI immediately
             setLocalLessons((prev) =>
                 prev.filter((l) => l.id !== lessonToDelete)
             );
@@ -78,7 +77,6 @@ export default function AvailableLessons({ lessons }: AvailableLessonsProps) {
 
     return (
         <>
-            {/* Delete confirmation modal */}
             {lessonToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                     <div className="bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl w-full max-w-md p-6">
@@ -112,14 +110,12 @@ export default function AvailableLessons({ lessons }: AvailableLessonsProps) {
                 </div>
             )}
 
-            {/* Lessons grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
                 {localLessons.map((lesson) => (
                     <div
                         key={lesson.id}
                         className="relative bg-[#0f1b1b] border border-[#1e2f2f] rounded-2xl p-5 hover:scale-[1.02] transition"
                     >
-                        {/* 3-dot menu */}
                         <div className="absolute top-5 right-5 z-10">
                             <button
                                 onClick={(e) => {
@@ -153,7 +149,6 @@ export default function AvailableLessons({ lessons }: AvailableLessonsProps) {
                             )}
                         </div>
 
-                        {/* Thumbnail */}
                         <div className="relative w-full h-40 rounded-xl overflow-hidden">
                             <Image
                                 src={lesson.thumbnailUrl || "/placeholder.jpg"}
@@ -163,7 +158,6 @@ export default function AvailableLessons({ lessons }: AvailableLessonsProps) {
                             />
                         </div>
 
-                        {/* Content */}
                         <h2 className="text-white text-lg font-bold mt-4">
                             {lesson.title}
                         </h2>

@@ -19,7 +19,7 @@ export default function Home() {
             const token = await getToken();
             try {
                 await axios.post(
-                    "http://localhost:5500/api/users/create",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/users/create`,
                     {},
                     {
                         headers: { Authorization: `Bearer ${token}` },
@@ -38,7 +38,7 @@ export default function Home() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    "http://localhost:5500/api/students/courses",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/students/courses`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

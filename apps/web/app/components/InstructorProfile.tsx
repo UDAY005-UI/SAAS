@@ -75,7 +75,7 @@ export function InstructorProfile({ user }: ProfileProps) {
             formData.append("twitter", form.twitter);
 
             await axios.put(
-                "http://localhost:5500/api/instructors/update-profile",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/update-profile`,
                 formData,
                 {
                     headers: {

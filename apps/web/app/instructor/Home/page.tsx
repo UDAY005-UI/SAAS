@@ -17,7 +17,7 @@ export default function Home() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    "http://localhost:5500/api/instructors/instructor-courses",
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/instructor-courses`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

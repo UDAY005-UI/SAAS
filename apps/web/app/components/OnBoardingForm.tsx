@@ -38,7 +38,7 @@ export default function OnboardingForm() {
         const headers = { Authorization: `Bearer ${token}` };
 
         await axios.post(
-            "http://localhost:5500/api/onboard",
+            `${process.env.NEXT_PUBLIC_API_URL}/api/onboard`,
             { role, ...form },
             { headers }
         );

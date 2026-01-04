@@ -53,7 +53,7 @@ export default function NewCourse() {
         const headers = { Authorization: `Bearer ${token}` };
 
         await axios.post(
-            "http://localhost:5500/api/instructors/create-course",
+            `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/create-course`,
             data,
             { headers, withCredentials: true }
         );

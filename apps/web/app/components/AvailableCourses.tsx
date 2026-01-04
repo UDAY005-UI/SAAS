@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useAuth } from "@clerk/nextjs";
 
@@ -32,7 +31,6 @@ type AvailableCoursesProps = {
 };
 
 export default function AvailableCourses({ courses }: AvailableCoursesProps) {
-    const router = useRouter();
     const { getToken } = useAuth();
 
     if (!courses || courses.length === 0) {
@@ -47,7 +45,7 @@ export default function AvailableCourses({ courses }: AvailableCoursesProps) {
         try {
             const token = await getToken();
             const res = await axios.post(
-                `http://localhost:5500/api/payments/create-order/${courseId}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/payments/create-order/${courseId}`,
                 {},
                 {
                     headers: {

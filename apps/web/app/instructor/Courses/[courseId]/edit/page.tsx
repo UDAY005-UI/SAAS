@@ -29,7 +29,7 @@ export default function UpdateCourse() {
                 const token = await getToken();
 
                 const res = await axios.get(
-                    `http://localhost:5500/api/courses/${courseId}/course`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/course`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -70,7 +70,7 @@ export default function UpdateCourse() {
             const headers = { Authorization: `Bearer ${token}` };
 
             await axios.put(
-                `http://localhost:5500/api/instructors/update-course/${courseId}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/instructors/update-course/${courseId}`,
                 data,
                 { headers, withCredentials: true }
             );

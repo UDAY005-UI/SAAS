@@ -21,18 +21,11 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
-
     const [isPlaying, setIsPlaying] = useState(false);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [hasStarted, setHasStarted] = useState(false);
-
-    // Progress States
     const [currentTime, setCurrentTime] = useState(0);
     const [totalDuration, setTotalDuration] = useState(0);
-
-    /* ===============================================================
-     LOGIC: TIME & SCRUBBING
-     =============================================================== */
     const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
@@ -87,7 +80,6 @@ export default function VideoPlayer({
                 className="group relative aspect-video bg-black rounded-xl overflow-hidden shadow-2xl"
                 onClick={() => togglePlay()}
             >
-                {/* VIDEO ELEMENT */}
                 {videoState === "READY" && contentUrl && (
                     <video
                         ref={videoRef}
@@ -101,7 +93,6 @@ export default function VideoPlayer({
                     />
                 )}
 
-                {/* THUMBNAIL LAYER (Original White Design) */}
                 {videoState === "READY" && !hasStarted && (
                     <div className="absolute inset-0 z-10 bg-black">
                         {thumbnailUrl && (
@@ -119,7 +110,6 @@ export default function VideoPlayer({
                     </div>
                 )}
 
-                {/* CONTROL BAR (White Semi-Transparent Design) */}
                 {videoState === "READY" && (
                     <div
                         className={`absolute bottom-0 left-0 right-0 z-30 p-4 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 ${
@@ -129,7 +119,6 @@ export default function VideoPlayer({
                         }`}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* WHITE PROGRESS BAR */}
                         <div className="relative flex items-center mb-3 group/slider">
                             <input
                                 type="range"
