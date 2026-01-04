@@ -8,6 +8,8 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import instructorRoutes from "./routes/instructorRoutes.js";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
@@ -42,6 +44,13 @@ app.use(clerkMiddleware());
 app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+const uploadDir = path.join(process.cwd(), "uploads");
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log("Created uploads directory");
+}
 
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
