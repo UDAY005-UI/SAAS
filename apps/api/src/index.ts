@@ -20,7 +20,11 @@ const allowedOrigins = ["http://localhost:3000", process.env.FRONTEND_URL];
 const corsOptions = {
     origin: (origin: string | undefined, callback: Function) => {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, origin);
+        }
+
         return callback(null, false);
     },
     credentials: true,
