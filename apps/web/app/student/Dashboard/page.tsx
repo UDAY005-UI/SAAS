@@ -36,7 +36,7 @@ export default function Dashboard() {
             }
         };
         fetchProfile();
-    }, [getToken]);
+    }, [getToken, user]);
 
     const isInstructor =
         Array.isArray(user?.roles) && user.roles.includes("INSTRUCTOR");

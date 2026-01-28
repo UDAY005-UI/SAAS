@@ -41,7 +41,7 @@ export function Profile({ user }: ProfileProps) {
         twitter: profile?.twitter || "",
     });
 
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(
         profile?.avatarUrl || null
     );
@@ -51,7 +51,7 @@ export function Profile({ user }: ProfileProps) {
     };
 
     const handleAvatarChange = (file: File) => {
-        setAvatarFile(file);
+        setAvatarUrl(file);
         setAvatarPreview(URL.createObjectURL(file));
     };
 
@@ -63,8 +63,8 @@ export function Profile({ user }: ProfileProps) {
             const formData = new FormData();
 
             // Avatar (optional)
-            if (avatarFile) {
-                formData.append("avatar", avatarFile);
+            if (avatarUrl) {
+                formData.append("avatar", avatarUrl);
             }
 
             // Profile fields

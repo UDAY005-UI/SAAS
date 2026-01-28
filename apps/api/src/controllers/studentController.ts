@@ -5,7 +5,7 @@ import cloudinary from "../services/cloudinaryServices.js";
 import fs from "fs";
 
 export const getProfile = async (req: Request, res: Response) => {
-    const { userId } = getAuth(req);
+    const { userId } = req.auth();
 
     if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -126,34 +126,38 @@ export const getProfile = async (req: Request, res: Response) => {
 };
 
 export const updateProfile = async (req: Request, res: Response) => {
-    const { userId } = getAuth(req);
+    const { userId } = req.auth();
+
     if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
     }
+
     const { name, bio, country, website, github, linkedin, twitter } = req.body;
 
-    const files = req.files as {
-        [fieldName: string]: Express.Multer.File[];
-    };
+    const files = req.files as
+        | { [fieldName: string]: Express.Multer.File[] }
+        | undefined;
 
-    const avatarUrlFile = files?.avatarUrl?.[0];
-
+    const avatarUrlFile = files?.avatar?.[0];
+    console.log(avatarUrlFile);
     try {
-        let avatarUrl: string | null = null;
+        let avatarUrl: string | undefined;
 
         if (avatarUrlFile) {
-            const avatarUpload = await cloudinary.uploader.upload(
-                avatarUrlFile.path,
-                {
-                    folder: "student/avatars",
-                }
-            );
-            avatarUrl = avatarUpload.secure_url;
-            fs.unlinkSync(avatarUrlFile.path);
+            try {
+                const avatarUpload = await cloudinary.uploader.upload(
+                    avatarUrlFile.path,
+                    { folder: "student/avatars" }
+                );
+                avatarUrl = avatarUpload.secure_url;
+            } finally {
+                // Always clean temp file
+                await fs.promises.unlink(avatarUrlFile.path).catch(() => {});
+            }
         }
 
         const user = await prisma.user.findUnique({
-            where: { clerkId: userId ?? undefined },
+            where: { clerkId: userId },
             include: { userProfile: true },
         });
 
@@ -162,11 +166,11 @@ export const updateProfile = async (req: Request, res: Response) => {
         }
 
         const updatedProfile = await prisma.userProfile.upsert({
-            where: { userId: user?.id },
+            where: { userId: user.id },
             update: {
                 name: name ?? undefined,
                 bio: bio ?? undefined,
-                avatarUrl: avatarUrl ?? undefined,
+                avatarUrl: avatarUrl,
                 country: country ?? undefined,
                 website: website ?? undefined,
                 github: github ?? undefined,
@@ -177,7 +181,7 @@ export const updateProfile = async (req: Request, res: Response) => {
                 userId: user.id,
                 name: name ?? "",
                 bio: bio ?? undefined,
-                avatarUrl: avatarUrl ?? undefined,
+                avatarUrl: avatarUrl,
                 country: country ?? undefined,
                 website: website ?? undefined,
                 github: github ?? undefined,
@@ -191,7 +195,7 @@ export const updateProfile = async (req: Request, res: Response) => {
             userProfile: updatedProfile,
         });
     } catch (err) {
-        console.log(err);
+        console.error("updateProfile error:", err);
         return res.status(500).json({ message: "Internal server error" });
     }
 };

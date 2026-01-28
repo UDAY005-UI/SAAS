@@ -14,8 +14,8 @@ declare global {
         }
 
         interface Request {
-            auth: AuthProps;
-            user?: User; // your added user property
+            auth: () => AuthProps; // ✅ function now
+            user?: User;
         }
     }
 }

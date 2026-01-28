@@ -8,9 +8,7 @@ import { useAuth } from "@clerk/nextjs";
 type ProfileProps = {
     user?: {
         id: string;
-        clerkId: string;
-        email: string;
-        userProfile: {
+        instructorProfile: {
             orgName: string | null;
             avatarUrl: string | null;
             bio: string | null;
@@ -27,7 +25,7 @@ export function InstructorProfile({ user }: ProfileProps) {
     const { getToken } = useAuth();
     if (!user) return null;
 
-    const profile = user.userProfile;
+    const profile = user.instructorProfile;
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -158,9 +156,6 @@ export function InstructorProfile({ user }: ProfileProps) {
                         <>
                             <p className="text-lg font-semibold">
                                 {form.orgName || "Unnamed Organization"}
-                            </p>
-                            <p className="text-gray-400 text-sm">
-                                {user.email}
                             </p>
                         </>
                     ) : (

@@ -14,8 +14,9 @@ export const createCourse = async (req: Request, res: Response) => {
     };
     const thumbnailFile = files?.thumbnail?.[0];
 
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -162,7 +163,7 @@ export const addLessons = async (req: Request, res: Response) => {
 export const publishCourse = async (req: Request, res: Response) => {
     try {
         const { courseId } = req.params;
-        const { userId } = getAuth(req);
+        const { userId } = req.auth();
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -214,8 +215,10 @@ export const updateCourse = async (req: Request, res: Response) => {
         [fieldname: string]: Express.Multer.File[];
     };
     const thumbnailFile = files?.thumbnail?.[0];
+
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -295,8 +298,10 @@ export const updateCourse = async (req: Request, res: Response) => {
 export const updateModule = async (req: Request, res: Response) => {
     const { moduleId } = req.params;
     const { title, description } = req.body;
+
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -361,8 +366,9 @@ export const updateLesson = async (req: Request, res: Response) => {
     const videoFile = files?.video?.[0];
     const thumbnailFile = files.thumbnail?.[0];
 
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -438,8 +444,10 @@ export const updateLesson = async (req: Request, res: Response) => {
 
 export const deleteCourse = async (req: Request, res: Response) => {
     const { courseId } = req.params;
+
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
     if (!instructorId || !courseId)
@@ -477,8 +485,10 @@ export const deleteCourse = async (req: Request, res: Response) => {
 
 export const deleteModule = async (req: Request, res: Response) => {
     const { moduleId } = req.params;
+
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -513,8 +523,10 @@ export const deleteModule = async (req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
     const { lessonId } = req.params;
+
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -559,8 +571,9 @@ export const deleteLesson = async (req: Request, res: Response) => {
 };
 
 export const getInstructorCourses = async (req: Request, res: Response) => {
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
 
@@ -600,8 +613,9 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
 };
 
 export const getInstructorEarnings = async (req: Request, res: Response) => {
+    const { userId } = req.auth();
     const user = await prisma.user.findUnique({
-        where: { clerkId: req.auth.userId! },
+        where: { clerkId: userId! },
     });
     const instructorId = user?.id;
     if (!instructorId)
@@ -745,7 +759,7 @@ export const becomeInstructor = async (req: Request, res: Response) => {
 };
 
 export const getInstructorProfile = async (req: Request, res: Response) => {
-    const { userId: clerkId } = getAuth(req);
+    const { userId: clerkId } = req.auth();
 
     if (!clerkId) {
         return res.status(401).json({ message: "Not Authenticated" });
@@ -785,11 +799,9 @@ export const getInstructorProfile = async (req: Request, res: Response) => {
                     "Instructor profile doesn't exist. Become an Instructor first.",
             });
         }
-
+        console.log(user);
         return res.status(200).json({
-            id: user.id,
-            role: user.roles,
-            instructorProfile: user.instructorProfile,
+            user,
         });
     } catch (err) {
         console.error("getInstructorProfile error:", err);
@@ -798,7 +810,7 @@ export const getInstructorProfile = async (req: Request, res: Response) => {
 };
 
 export const updateInstructorProfile = async (req: Request, res: Response) => {
-    const { userId: clerkId } = getAuth(req);
+    const { userId: clerkId } = req.auth();
 
     if (!clerkId) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -811,7 +823,7 @@ export const updateInstructorProfile = async (req: Request, res: Response) => {
         [fieldName: string]: Express.Multer.File[];
     };
 
-    const avatarUrlFile = files?.avatarUrl?.[0];
+    const avatarUrlFile = files?.avatar?.[0];
 
     try {
         let avatarUrl: string | null = null;

@@ -27,8 +27,7 @@ export default function Dashboard() {
                         withCredentials: true,
                     }
                 );
-                setUser(res.data || {});
-                console.log(user);
+                setUser(res.data.user || {});
             } catch (err) {
                 console.log("Failed to fetch instructor profile:", err);
             } finally {

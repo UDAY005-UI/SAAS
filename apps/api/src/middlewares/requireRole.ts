@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma.js";
 export const requireRole = (allowedRoles: string[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { userId } = req.auth;
+            const { userId } = req.auth();
 
             if (!userId)
                 return res.status(401).json({ message: "Unauthorized" });
